@@ -30,7 +30,6 @@ def bukvaR():
     t1.left(90)
     t1.forward(50)
     t1.forward(10)
-
     t1.pendown()
 
 abc = input ('Введите слово: ')
