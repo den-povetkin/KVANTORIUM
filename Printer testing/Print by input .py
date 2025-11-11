@@ -1,0 +1,121 @@
+from turtle import *
+penup()
+goto(-400,0)
+pendown()
+factor = 1
+color('black')
+pensize(1)
+speed(500)
+printing = 0
+def pixel():
+    penup()
+    pendown()
+    begin_fill()
+    for i in range(4):
+        forward(10 * factor)
+        penup()
+        pendown()
+        left(90)
+    penup()
+    end_fill()
+factor = 2
+def printA():
+    for i in range(5):
+        pixel()
+        left(90)
+        forward(10 * factor)
+        right(90)
+    penup()
+    forward(10 * factor)
+    pendown()
+    pixel()
+    penup()
+    forward(10 * factor)
+    left(90)
+    forward(10 * factor)
+    right(90)
+    pendown()
+    for i in range(3):
+        pixel()
+        forward(10 * factor)
+    penup()
+    right(180)
+    forward(10 * factor)
+    left(90)
+    pendown()
+    for i in range(6):
+        pixel()
+        forward(10 * factor)
+    penup()
+    right(180)
+    forward(10 * factor)
+    forward(10 * factor)
+    left(90)
+    for i in range(3):
+        forward(10 * factor)
+    left(180)
+    for i in range(3):
+        pixel()
+        forward(10 * factor)
+    right(90)
+    forward(10 * factor)
+    forward(10 * factor)
+    left(90)
+    forward(10 * factor)
+    forward(10 * factor)
+
+def printB():
+    for i in range(7):
+        pixel()
+        left(90)
+        forward(10 * factor)
+        right(90)
+    forward(10 * factor)
+    right(90)
+    forward(10 * factor)
+    left(90)
+    for i in range(3):
+        pixel()
+        forward(10 * factor)
+    right(90)
+    forward(10 * factor)
+    forward(10 * factor)
+    forward(10 * factor)
+    right(90)
+    forward(10 * factor)
+    forward(10 * factor)
+    forward(10 * factor)
+    right(180)
+    for i in range(3):
+        pixel()
+        forward(10 * factor)
+    right(90)
+    forward(10 * factor)
+    left(90)
+    pixel()
+    right(90)
+    forward(10 * factor)
+    left(90)
+    pixel()
+    right(90)
+    forward(10 * factor)
+    right(90)
+    forward(10 * factor)
+    forward(10 * factor)
+    forward(10 * factor)
+    right(180)
+    for i in range(3):
+        pixel()
+        forward(10 * factor)
+    forward(10 * factor)
+    forward(10 * factor)
+word = input('Слово: ')
+i1 = 0
+print(len(word))
+for i in range(len(word)):
+    if word[i1] == 'а':
+        printA()
+    if word[i1] == 'б':
+        printB()
+    i1 = i1 + 1
+exitonclick()
