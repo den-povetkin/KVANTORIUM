@@ -1,6 +1,6 @@
 from turtle import *
 t1 = Turtle()
-t1.color('red')
+t1.color('orange')
 t1.pensize(10)
 
 def bukvaP():
@@ -33,7 +33,7 @@ def bukvaR():
 
     t1.pendown()
 
-abc = input ('Введите букву')
+abc = input ('Введите слово: ')
 
 for bu in abc: 
     if bu == 'п':
