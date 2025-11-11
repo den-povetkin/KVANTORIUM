@@ -2,6 +2,7 @@ from turtle import *
 t1 = Turtle()
 t1.color('red')
 t1.pensize(10)
+
 def bukvaP():
     t1.left(90)
     t1.forward(100)
@@ -32,10 +33,12 @@ def bukvaR():
 
     t1.pendown()
 
-bu = input ('Введите букву')
-if bu == 'п':
-    bukvaP()
-elif bu == 'р':
-    bukvaR()
-else:
-    print ('error')
+abc = input ('Введите букву')
+
+for bu in abc: 
+    if bu == 'п':
+        bukvaP()
+    elif bu == 'р':
+        bukvaR()
+    else:
+        print ('error')
