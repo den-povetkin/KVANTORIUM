@@ -41,4 +41,4 @@ for bu in abc:
     elif bu == 'р':
         bukvaR()
     else:
-        print ('error')
+        print ('такую букву я не знаю')
