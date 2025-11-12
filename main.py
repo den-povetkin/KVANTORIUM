@@ -1,15 +1,11 @@
 from turtle import *
 from time import sleep
-from pico import Robot
-from gpiozero import Motor
 
-
+# переменные
 t1 = Turtle()
 t1.color('orange')
 t1.pensize(10)
 t1.speed(1)
-
-#robot = Robot(left=Motor(23, 24), right=Motor(27, 22))
 
 def bukvaP():
     t1.left(90)
