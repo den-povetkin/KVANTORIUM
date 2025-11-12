@@ -1,7 +1,10 @@
 from turtle import *
+from time import sleep
 t1 = Turtle()
 t1.color('orange')
 t1.pensize(10)
+t1.speed(1)
+
 '''''
 left_motor = Motor(forward=17, backward=18)
 right_motor = Motor(forward=22, backward=23)
@@ -68,3 +71,4 @@ for bu in abc:
         bukvaR()
     else:
         print ('такую букву я не знаю')
+#sleep(10)
