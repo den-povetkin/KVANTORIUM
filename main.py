@@ -4,8 +4,9 @@ from time import sleep
 # переменные
 t1 = Turtle()
 t1.color('orange')
-t1.pensize(10)
+t1.pensize(20)
 t1.speed(1)
+t1.shape('square')
 
 def bukvaP():
     t1.left(90)
@@ -46,3 +47,5 @@ for bu in abc:
     else:
         print ('такую букву я не знаю')
 #sleep(10)
+
+# ля ля ля проверка
