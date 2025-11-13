@@ -36,6 +36,13 @@ def bukvaR():
     t1.forward(50)
     t1.forward(10)
     t1.pendown()
+    t1.penup()
+    t1.forward(20)
+    t1.pendown()
+def probel():
+    t1.penup()
+    t1.forward(30)
+    t1.pendown()
 
 abc = input ('Введите слово: ')
 
@@ -44,8 +51,10 @@ for bu in abc:
         bukvaP()
     elif bu == 'р':
         bukvaR()
+    elif bu == ' ':
+        probel()    
     else:
-        print ('такую букву я не знаю')
+        probel()
 #sleep(10)
 
 # ля ля ля проверка
