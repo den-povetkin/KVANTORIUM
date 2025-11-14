@@ -10,7 +10,6 @@ bot=telebot.TeleBot(api_key)
 
 #ADMIN = 19907153
 ADMIN = 0
-userid = []
 
 #robot = Robot(left=Motor(23, 24), right=Motor(27, 22))
 
@@ -54,6 +53,10 @@ def func(message):
         
     elif message.text == "Калибровка":
         bot.send_message(message.chat.id, text="Привет тут будем калибровать шаг робота")
+        bot.send_message(message.chat.id, text="Введите шаг робота")
+        x = message.text
+        #x=int(x)
+        Step(x)
 
     elif message.text == "Ручное управление":
         #bot.send_message(message.chat.id, text="Привет тут будет ручное управление")
@@ -113,5 +116,13 @@ def handle_query(call):
         robot.stop()
         bot.answer_callback_query(call.id, "Стою")
 
-
+def Step(x):
+    robot.forward()
+    sleep(x)
+    robot.stop()
+def kalibrovka():
+    bot.send_message(message.chat.id, text="Введите шаг робота")
+    x = int(mesage.text)
+    Step(x)
+    
 bot.infinity_polling()
