@@ -2,16 +2,31 @@ from time import sleep
 from pico import Robot
 from gpiozero import Motor
 
+robot = Robot(right=Motor(23, 24), left=Motor(27, 22))
 
-api_key=api_key.api['api_key']
-bot=telebot.TeleBot(api_key)
-
-robot = Robot(left=Motor(23, 24), right=Motor(27, 22))
-
-
-robot.forward()
-sleep(10)
+#robot.forward()
 #robot.backward()
 #robot.left()
 #robot.right()
-robot.stop()
+
+def Step(x):
+    robot.forward()
+    sleep(x)
+    robot.stop()
+# 0.9 сек поворот на 90 градусов
+def StepLeft(x):
+    robot.left()
+    sleep(x)
+    robot.stop()
+    
+def StepRight(x):
+    robot.right()
+    sleep(x)
+    robot.stop()
+    
+def StepBackward(x):
+    robot.backward()
+    sleep(x)
+    robot.stop()
+
+StepBackward(0.9)
