@@ -1,8 +1,8 @@
 import telebot
 from telebot import types
 import api_key
-#from pico import Robot
-#from gpiozero import Motor
+from pico import Robot
+from gpiozero import Motor
 from time import sleep
 
 api_key=api_key.api['api_key']
@@ -11,7 +11,7 @@ bot=telebot.TeleBot(api_key)
 #ADMIN = 19907153
 ADMIN = 0
 
-#robot = Robot(left=Motor(23, 24), right=Motor(27, 22))
+robot = Robot(left=Motor(23, 24), right=Motor(27, 22))
 
 @bot.message_handler(commands=['id'])
 def send_id(message: types.Message):
@@ -52,11 +52,10 @@ def func(message):
         bot.send_message(message.chat.id, text="Привет тут будем рисовать фигуры")
         
     elif message.text == "Калибровка":
-        bot.send_message(message.chat.id, text="Привет тут будем калибровать шаг робота")
+        #bot.send_message(message.chat.id, text="Привет тут будем калибровать шаг робота")
         bot.send_message(message.chat.id, text="Введите шаг робота")
-        x = message.text
-        #x=int(x)
-        Step(x)
+        bot.register_next_step_handler(message,Step)
+
 
     elif message.text == "Ручное управление":
         #bot.send_message(message.chat.id, text="Привет тут будет ручное управление")
@@ -116,13 +115,26 @@ def handle_query(call):
         robot.stop()
         bot.answer_callback_query(call.id, "Стою")
 
-def Step(x):
+
+@bot.message_handler(content_types=['text'])
+def Step(message):
+    text = message.text.strip()
+    
+    try:
+        # Пробуем преобразовать в целое число
+        if text.isdigit() or (text.startswith('-') and text[1:].isdigit()):
+            x = int(text)
+        
+        # Пробуем преобразовать в дробное число
+        else:
+            x = float(text)
+            
+    except ValueError:
+        bot.reply_to(message, "Это не число! Пожалуйста, введите корректное число.")
+        
     robot.forward()
     sleep(x)
     robot.stop()
-def kalibrovka():
-    bot.send_message(message.chat.id, text="Введите шаг робота")
-    x = int(mesage.text)
-    Step(x)
+
     
 bot.infinity_polling()
