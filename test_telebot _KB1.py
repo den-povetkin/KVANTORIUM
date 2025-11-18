@@ -5,6 +5,8 @@ from pico import Robot
 from gpiozero import Motor
 from time import sleep
 
+global x
+
 api_key=api_key.api['api_key']
 bot=telebot.TeleBot(api_key)
 
@@ -23,9 +25,9 @@ def start(message):
         if message.chat.id == ADMIN:
         #клавиатура
             markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard = True)
-            btn1=types.KeyboardButton('Рассылка')
-            btn2=types.KeyboardButton('Управление администраторами')
-            btn3=types.KeyboardButton('Управление тренерами')
+            btn1=types.KeyboardButton('кнопка')
+            btn2=types.KeyboardButton('кнопка')
+            btn3=types.KeyboardButton('кнопка')
             btn4=types.KeyboardButton('кнопка')
             markup.add(btn1, btn2, btn3, btn4)
         # отправление клавиатуры с текстом
@@ -118,6 +120,7 @@ def handle_query(call):
 
 @bot.message_handler(content_types=['text'])
 def Step(message):
+    x= 0
     text = message.text.strip()
     
     try:
@@ -136,5 +139,5 @@ def Step(message):
     sleep(x)
     robot.stop()
 
-    
 bot.infinity_polling()
+
