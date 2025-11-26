@@ -72,9 +72,9 @@ def star():
     turtle.exitonclick()
 
 # Вызов функции для рисования звезды
-star()
+#star()
 # kv()
 # circle()
 #triangle()
-#circle36()
+circle36()
 #ellipse()

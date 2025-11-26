@@ -9,7 +9,7 @@ t1.speed(1)
 t1.shape('square')
 
 def bukvaP():
-    t1.left(90)
+    t2.left(90)
     t1.forward(100)
     t1.right(90)
     t1.forward(50)
