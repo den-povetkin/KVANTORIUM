@@ -72,49 +72,4 @@ if ask_1=="Фигура":
         print("такой фигуры нет в списке") 
     
 
-
-
-
-
-def zvezda():
-    for i in range(5):
-        pensize(ask_2)
-        color(ask_3)
-        forward(50)
-        left(144)
-
-def squre():
-    for i in range(5):
-        pensize(ask_2)
-        color(ask_3)
-        forward(90)
-        left(90)
-
-def squre_figure():
-    for i in range(5):
-        pensize(ask_2)
-        color(ask_3)
-        forward(90)
-        left(90)
-        forward(90)
-        left(45)
-        forward(90)
-        left(45)
-        forward(90)
-        left(45)
-        forward(90)
-
-def circle_fugure():
-    for i in range(7):
-        circle(radius=ask_2)
-        color(ask_3)
-        left(50)
-
-
-
-
-
-
-
-
 exitonclick()
