@@ -36,6 +36,7 @@ def triangle():
 def circle36():
     """Рисует супер круг с использованием turtle"""
     t = turtle.Turtle() 
+    t.speed(20)
     # Рисуем круг
     for i in range(36):
         t.circle(50)  # Радиус круга
