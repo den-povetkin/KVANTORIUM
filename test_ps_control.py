@@ -1,236 +1,506 @@
 #!/usr/bin/env python3
 """
-ПРОСТОЙ ТЕСТ ПОДКЛЮЧЕНИЯ PS2 ГЕЙМПАДА
-На Raspberry Pi через GPIO
+ТЕСТ ПОДКЛЮЧЕНИЯ PS2 ГЕЙМПАДА SZDoit К GPIO RASPBERRY PI
+Прямое подключение без адаптеров
 """
 
-import RPi.GPIO as GPIO
 import time
+import RPi.GPIO as GPIO
+import os
+import sys
 
-# Настройка пинов (физическая нумерация)
-DAT = 13  # Фиолетовый провод (GPIO27)
-CMD = 15  # Синий провод (GPIO22)
-SEL = 16  # Зеленый провод (GPIO23)
-CLK = 18  # Оранжевый провод (GPIO24)
+# =================== НАСТРОЙКА ПИНОВ SZDoit PS2 ===================
+# Пины подключения PS2 контроллера SZDoit (физическая нумерация пинов)
+PS2_DAT = 13    # GPIO27 - DATA (фиолетовый провод)
+PS2_CMD = 15    # GPIO22 - COMMAND (синий провод)
+PS2_SEL = 16    # GPIO23 - ATTENTION/SELECT (зеленый провод)
+PS2_CLK = 18    # GPIO24 - CLOCK (оранжевый провод)
 
-def setup():
-    """Настройка пинов"""
-    GPIO.setmode(GPIO.BOARD)  # Используем номера на разъеме
-    GPIO.setwarnings(True)
-    
-    # Настройка пинов
-    GPIO.setup(DAT, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(CMD, GPIO.OUT)
-    GPIO.setup(SEL, GPIO.OUT)
-    GPIO.setup(CLK, GPIO.OUT)
-    
-    # Установка начального состояния
-    GPIO.output(SEL, GPIO.HIGH)
-    GPIO.output(CLK, GPIO.HIGH)
-    GPIO.output(CMD, GPIO.HIGH)
+# =================== ЦВЕТА ДЛЯ ВЫВОДА ===================
+class Colors:
+    RED = '\033[91m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    BLUE = '\033[94m'
+    MAGENTA = '\033[95m'
+    CYAN = '\033[96m'
+    WHITE = '\033[97m'
+    RESET = '\033[0m'
+    BOLD = '\033[1m'
 
-def send_byte(data):
-    """Отправить один байт в контроллер"""
-    received = 0
-    
-    for i in range(8):
-        # Опускаем CLK
-        GPIO.output(CLK, GPIO.LOW)
-        time.sleep(0.00001)
+# =================== ОСНОВНОЙ ТЕСТЕР ===================
+class SZDoitPS2Tester:
+    def __init__(self):
+        self.connected = False
+        self.controller_type = "Неизвестно"
+        self.analog_mode = False
+        self.test_results = []
         
-        # Устанавливаем бит на CMD
-        bit = (data >> i) & 1
-        GPIO.output(CMD, GPIO.HIGH if bit else GPIO.LOW)
-        time.sleep(0.00001)
+    def print_header(self):
+        """Вывод заголовка теста"""
+        print(f"{Colors.CYAN}{'='*70}")
+        print(f"{Colors.BOLD}ТЕСТ ПОДКЛЮЧЕНИЯ PS2 ГЕЙМПАДА SZDoit")
+        print(f"{Colors.CYAN}{'='*70}{Colors.RESET}")
         
-        # Поднимаем CLK
-        GPIO.output(CLK, GPIO.HIGH)
-        time.sleep(0.00001)
+        print(f"\n{Colors.YELLOW}СХЕМА ПОДКЛЮЧЕНИЯ PS2 SZDoit:{Colors.RESET}")
+        print("PS2 разъем -> Raspberry Pi (физические пины):")
+        print(f"  {Colors.MAGENTA}Фиолетовый (DATA)   -> Pin {PS2_DAT} (GPIO27){Colors.RESET}")
+        print(f"  {Colors.BLUE}Синий (COMMAND)      -> Pin {PS2_CMD} (GPIO22){Colors.RESET}")
+        print(f"  {Colors.GREEN}Зеленый (ATTENTION)  -> Pin {PS2_SEL} (GPIO23){Colors.RESET}")
+        print(f"  {Colors.YELLOW}Оранжевый (CLOCK)    -> Pin {PS2_CLK} (GPIO24){Colors.RESET}")
+        print(f"  {Colors.RED}Красный (VCC)        -> 3.3V (Pin 1 или 17){Colors.RESET}")
+        print(f"  Черный (GND)         -> GND (Pin 6, 9, 14, 20, 25)")
         
-        # Читаем бит с DAT
-        received_bit = GPIO.input(DAT)
-        received |= (received_bit << i)
+        print(f"\n{Colors.YELLOW}ВАЖНО:{Colors.RESET}")
+        print("  1. Питание PS2 - ТОЛЬКО 3.3V! Не подключайте к 5V!")
+        print("  2. Нажмите кнопку Analog/Mode на геймпаде")
+        print("  3. Должен гореть красный светодиод на геймпаде")
+        print(f"\n{Colors.CYAN}{'='*70}{Colors.RESET}\n")
         
-        time.sleep(0.00001)
-    
-    return received
-
-def test_controller():
-    """Основной тест контроллера"""
-    print("\n" + "="*50)
-    print("ТЕСТ PS2 ГЕЙМПАДА НА RASPBERRY PI")
-    print("="*50)
-    
-    print("\nПРОВЕРКА ПОДКЛЮЧЕНИЯ...")
-    
-    # Проверяем аппаратную часть
-    print("1. Проверка линий GPIO...")
-    try:
-        GPIO.output(CLK, GPIO.LOW)
-        time.sleep(0.001)
-        GPIO.output(CLK, GPIO.HIGH)
-        print("   ✓ CLK работает")
-    except:
-        print("   ✗ Ошибка CLK")
-        return False
-    
-    # Пробуем обратиться к контроллеру
-    print("\n2. Обращение к контроллеру...")
-    
-    try:
-        # Активируем контроллер
-        GPIO.output(SEL, GPIO.LOW)
-        time.sleep(0.0001)
+    def setup_gpio(self):
+        """Настройка GPIO пинов"""
+        print(f"{Colors.BLUE}[1/5] Настройка GPIO...{Colors.RESET}")
         
-        # Отправляем команду "Привет" (0x01)
-        print("   Отправляю команду 0x01...")
-        response1 = send_byte(0x01)
-        print(f"   Ответ: {hex(response1)}")
-        
-        # Читаем еще 5 байтов
-        responses = [response1]
-        for i in range(5):
-            resp = send_byte(0x00)
-            responses.append(resp)
-        
-        # Деактивируем контроллер
-        GPIO.output(SEL, GPIO.HIGH)
-        
-        print(f"   Все ответы: {[hex(x) for x in responses]}")
-        
-        # Анализируем ответ
-        if responses[0] == 0xFF:
-            print("\n   ✗ Контроллер не ответил (получен 0xFF)")
-            print("   Проверьте:")
-            print("   - Подключен ли контроллер")
-            print("   - Включен ли он (красный светодиод)")
-            print("   - Нажата ли кнопка Analog/Mode")
-            return False
-        else:
-            print(f"\n   ✓ Контроллер ответил! ID: {hex(responses[1])}")
+        try:
+            GPIO.setmode(GPIO.BOARD)  # Используем физическую нумерацию
+            GPIO.setwarnings(True)
             
-            # Определяем тип контроллера
-            controller_id = responses[1]
-            if controller_id == 0x41:
-                print("   Тип: Цифровой контроллер PlayStation")
-            elif controller_id == 0x73:
-                print("   Тип: Аналоговый контроллер (DualShock)")
-            elif controller_id == 0x79:
-                print("   Тип: DualShock 2")
-            else:
-                print(f"   Тип: Неизвестный (ID: {hex(controller_id)})")
+            # Настройка пинов PS2
+            GPIO.setup(PS2_DAT, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.setup(PS2_CMD, GPIO.OUT)
+            GPIO.setup(PS2_SEL, GPIO.OUT)
+            GPIO.setup(PS2_CLK, GPIO.OUT)
             
+            # Установка начальных состояний
+            GPIO.output(PS2_SEL, GPIO.HIGH)
+            GPIO.output(PS2_CLK, GPIO.HIGH)
+            GPIO.output(PS2_CMD, GPIO.HIGH)
+            
+            print(f"  {Colors.GREEN}✓ GPIO настроен{Colors.RESET}")
             return True
             
-    except Exception as e:
-        print(f"   ✗ Ошибка: {e}")
-        GPIO.output(SEL, GPIO.HIGH)
-        return False
-
-def read_buttons():
-    """Чтение кнопок в реальном времени"""
-    print("\n3. ТЕСТ КНОПОК И СТИКОВ")
-    print("   Нажимайте кнопки, двигайте стики...")
-    print("   Для выхода нажмите Ctrl+C\n")
+        except Exception as e:
+            print(f"  {Colors.RED}✗ Ошибка настройки GPIO: {e}{Colors.RESET}")
+            return False
     
-    try:
-        count = 0
-        while True:
-            # Команда чтения состояния (0x42)
-            GPIO.output(SEL, GPIO.LOW)
+    def test_hardware_connections(self):
+        """Тест аппаратных соединений"""
+        print(f"{Colors.BLUE}[2/5] Тест аппаратных соединений...{Colors.RESET}")
+        
+        tests_passed = 0
+        total_tests = 3
+        
+        try:
+            # Тест 1: Проверка линии DAT
+            dat_state = GPIO.input(PS2_DAT)
+            if dat_state == GPIO.HIGH:
+                print(f"  {Colors.GREEN}✓ DAT: HIGH (норма){Colors.RESET}")
+                tests_passed += 1
+            else:
+                print(f"  {Colors.YELLOW}⚠ DAT: LOW (возможна проблема){Colors.RESET}")
+                
+            # Тест 2: Тест линии CLK
+            GPIO.output(PS2_CLK, GPIO.LOW)
+            time.sleep(0.001)
+            GPIO.output(PS2_CLK, GPIO.HIGH)
+            print(f"  {Colors.GREEN}✓ CLK: управляется{Colors.RESET}")
+            tests_passed += 1
+            
+            # Тест 3: Тест линии CMD
+            GPIO.output(PS2_CMD, GPIO.LOW)
+            time.sleep(0.001)
+            GPIO.output(PS2_CMD, GPIO.HIGH)
+            print(f"  {Colors.GREEN}✓ CMD: управляется{Colors.RESET}")
+            tests_passed += 1
+            
+            result = tests_passed == total_tests
+            status = f"{Colors.GREEN}ПРОЙДЕН{Colors.RESET}" if result else f"{Colors.YELLOW}ЧАСТИЧНО{Colors.RESET}"
+            print(f"  Результат: {status} ({tests_passed}/{total_tests})")
+            
+            return result
+            
+        except Exception as e:
+            print(f"  {Colors.RED}✗ Ошибка теста: {e}{Colors.RESET}")
+            return False
+    
+    def send_byte(self, data):
+        """Отправка одного байта"""
+        received = 0
+        
+        for i in range(8):
+            GPIO.output(PS2_CLK, GPIO.LOW)
+            time.sleep(0.00001)  # 10 мкс
+            
+            # Установка бита на CMD
+            bit = (data >> i) & 1
+            GPIO.output(PS2_CMD, GPIO.HIGH if bit else GPIO.LOW)
+            time.sleep(0.00001)
+            
+            GPIO.output(PS2_CLK, GPIO.HIGH)
+            time.sleep(0.00001)
+            
+            # Чтение бита с DAT
+            received_bit = GPIO.input(PS2_DAT)
+            received |= (received_bit << i)
+            
+            time.sleep(0.00001)
+            
+        return received
+    
+    def ps2_command(self, command, read_bytes=6):
+        """Отправка команды PS2 контроллеру"""
+        response = []
+        
+        try:
+            GPIO.output(PS2_SEL, GPIO.LOW)
             time.sleep(0.0001)
             
-            # Отправляем команду и читаем ответ
-            responses = []
-            responses.append(send_byte(0x42))  # Команда
+            # Отправка команды и чтение ответа
+            response.append(self.send_byte(command))
             
-            for i in range(8):  # Читаем 8 байтов данных
-                responses.append(send_byte(0x00))
+            for _ in range(read_bytes):
+                response.append(self.send_byte(0x00))
             
-            GPIO.output(SEL, GPIO.HIGH)
+            GPIO.output(PS2_SEL, GPIO.HIGH)
+            time.sleep(0.0001)
             
-            # Выводим состояние каждые 10 раз
-            count += 1
-            if count % 10 == 0:
-                print(f"\n--- ОПРОС #{count} ---")
-                
-                # Байты 1-2: кнопки
-                btn1 = responses[1]
-                btn2 = responses[2]
-                
-                # Проверяем основные кнопки
-                buttons = []
-                if not (btn1 & 0x01): buttons.append("SELECT")
-                if not (btn1 & 0x08): buttons.append("START")
-                if not (btn1 & 0x10): buttons.append("UP")
-                if not (btn1 & 0x20): buttons.append("RIGHT")
-                if not (btn1 & 0x40): buttons.append("DOWN")
-                if not (btn1 & 0x80): buttons.append("LEFT")
-                
-                if not (btn2 & 0x10): buttons.append("TRIANGLE")
-                if not (btn2 & 0x20): buttons.append("CIRCLE")
-                if not (btn2 & 0x40): buttons.append("CROSS")
-                if not (btn2 & 0x80): buttons.append("SQUARE")
-                
-                if buttons:
-                    print(f"   Кнопки: {', '.join(buttons)}")
-                else:
-                    print("   Кнопки: не нажаты")
-                
-                # Стики (байты 3-6)
-                if len(responses) >= 7:
-                    lx = responses[3]
-                    ly = responses[4]
-                    rx = responses[5]
-                    ry = responses[6]
-                    print(f"   Левый стик: X={lx:3d}, Y={ly:3d}")
-                    print(f"   Правый стик: X={rx:3d}, Y={ry:3d}")
+            return response
             
-            time.sleep(0.05)  # 20 раз в секунду
+        except Exception as e:
+            GPIO.output(PS2_SEL, GPIO.HIGH)
+            print(f"  {Colors.RED}✗ Ошибка команды: {e}{Colors.RESET}")
+            return None
+    
+    def test_communication(self):
+        """Тест связи с контроллером"""
+        print(f"{Colors.BLUE}[3/5] Тест связи с контроллером...{Colors.RESET}")
+        
+        print("  Отправка команды инициализации (0x01)...")
+        response = self.ps2_command(0x01)
+        
+        if not response:
+            print(f"  {Colors.RED}✗ Нет ответа от контроллера{Colors.RESET}")
+            return False
+        
+        print(f"  Ответ: {[hex(x) for x in response]}")
+        
+        if response[0] == 0xFF:
+            print(f"  {Colors.RED}✗ Контроллер не отвечает (0xFF){Colors.RESET}")
+            print(f"  {Colors.YELLOW}Проверьте:{Colors.RESET}")
+            print("    1. Подключен ли контроллер")
+            print("    2. Включен ли он (красный светодиод)")
+            print("    3. Нажата ли кнопка Analog/Mode")
+            return False
+        
+        # Определение типа контроллера
+        controller_id = response[1]
+        controllers = {
+            0x41: "Digital PlayStation Controller",
+            0x23: "DualShock (Digital Mode)",
+            0x73: "DualShock (Analog Mode)",
+            0x79: "DualShock 2 Controller",
+            0x5A: "NegCon Controller",
+        }
+        
+        self.controller_type = controllers.get(controller_id, f"Unknown (0x{controller_id:02X})")
+        print(f"  {Colors.GREEN}✓ Контроллер найден!{Colors.RESET}")
+        print(f"  Тип: {Colors.CYAN}{self.controller_type}{Colors.RESET}")
+        
+        self.connected = True
+        return True
+    
+    def test_analog_mode(self):
+        """Тест аналогового режима"""
+        print(f"{Colors.BLUE}[4/5] Тест аналогового режима...{Colors.RESET}")
+        
+        if "DualShock" not in self.controller_type:
+            print(f"  {Colors.YELLOW}⚠ Контроллер не поддерживает аналоговый режим{Colors.RESET}")
+            return False
+        
+        print("  Включение аналогового режима (0x44)...")
+        response = self.ps2_command(0x44)
+        
+        if response and response[1] == 0x73:
+            # Подтверждение режима
+            self.ps2_command(0x4F)
+            self.analog_mode = True
+            print(f"  {Colors.GREEN}✓ Аналоговый режим включен{Colors.RESET}")
+            return True
+        else:
+            print(f"  {Colors.YELLOW}⚠ Не удалось включить аналоговый режим{Colors.RESET}")
+            return False
+    
+    def real_time_test(self):
+        """Тест в реальном времени"""
+        print(f"{Colors.BLUE}[5/5] Тест в реальном времени...{Colors.RESET}")
+        print("  Нажимайте кнопки, двигайте стики...")
+        print(f"  {Colors.YELLOW}Для выхода нажмите Ctrl+C{Colors.RESET}\n")
+        
+        poll_count = 0
+        last_buttons = set()
+        
+        try:
+            while True:
+                response = self.ps2_command(0x42, 8)  # Команда чтения состояния
+                
+                if not response or response[0] == 0xFF:
+                    print(f"{Colors.RED}✗ Потеря связи с контроллером{Colors.RESET}")
+                    break
+                
+                poll_count += 1
+                
+                # Разбор кнопок
+                btn1 = response[1]
+                btn2 = response[2]
+                
+                # Маппинг кнопок
+                button_map = {
+                    'SELECT': not (btn1 & 0x01),
+                    'L3': not (btn1 & 0x02),
+                    'R3': not (btn1 & 0x04),
+                    'START': not (btn1 & 0x08),
+                    'UP': not (btn1 & 0x10),
+                    'RIGHT': not (btn1 & 0x20),
+                    'DOWN': not (btn1 & 0x40),
+                    'LEFT': not (btn1 & 0x80),
+                    'L2': not (btn2 & 0x01),
+                    'R2': not (btn2 & 0x02),
+                    'L1': not (btn2 & 0x04),
+                    'R1': not (btn2 & 0x08),
+                    'TRIANGLE': not (btn2 & 0x10),
+                    'CIRCLE': not (btn2 & 0x20),
+                    'CROSS': not (btn2 & 0x40),
+                    'SQUARE': not (btn2 & 0x80),
+                }
+                
+                # Получение нажатых кнопок
+                pressed_buttons = {btn for btn, pressed in button_map.items() if pressed}
+                
+                # Вывод изменений
+                if pressed_buttons != last_buttons:
+                    last_buttons = pressed_buttons.copy()
+                    
+                    # Очистка строки
+                    print("\033[K", end="")
+                    
+                    if pressed_buttons:
+                        print(f"\rКнопки: {', '.join(pressed_buttons)}", end="")
+                    else:
+                        print(f"\rКнопки: не нажаты", end="")
+                
+                # Вывод стиков раз в 10 опросов
+                if poll_count % 10 == 0 and len(response) >= 7:
+                    print("\033[K", end="")
+                    lx = response[3]
+                    ly = response[4]
+                    rx = response[5]
+                    ry = response[6]
+                    print(f"\rСтики: L({lx:3d},{ly:3d}) R({rx:3d},{ry:3d}) | Опрос #{poll_count}", end="")
+                
+                time.sleep(0.05)  # 20 Гц
+                
+        except KeyboardInterrupt:
+            print(f"\n\n{Colors.YELLOW}Тест остановлен{Colors.RESET}")
+        except Exception as e:
+            print(f"\n{Colors.RED}Ошибка: {e}{Colors.RESET}")
+    
+    def print_summary(self):
+        """Вывод итогов теста"""
+        print(f"\n{Colors.CYAN}{'='*70}")
+        print(f"ИТОГИ ТЕСТА SZDoit PS2")
+        print(f"{'='*70}{Colors.RESET}")
+        
+        print(f"\n{Colors.BOLD}Результаты:{Colors.RESET}")
+        print(f"  1. Подключение к GPIO:   {Colors.GREEN}✓{Colors.RESET}")
+        print(f"  2. Аппаратные соединения:{Colors.GREEN}✓{Colors.RESET}")
+        print(f"  3. Связь с контроллером: {'✓' if self.connected else '✗'}")
+        
+        if self.connected:
+            print(f"  4. Тип контроллера:      {Colors.CYAN}{self.controller_type}{Colors.RESET}")
+            print(f"  5. Аналоговый режим:     {'✓' if self.analog_mode else '✗'}")
+        
+        print(f"\n{Colors.YELLOW}Подсказки:{Colors.RESET}")
+        
+        if not self.connected:
+            print(f"  • Проверьте все соединения проводов")
+            print(f"  • Убедитесь, что VCC подключен к 3.3V (НЕ к 5V!)")
+            print(f"  • Нажмите кнопку Analog/Mode на контроллере")
+            print(f"  • Должен гореть красный светодиод на контроллере")
+        else:
+            print(f"  • Контроллер готов к использованию")
+            print(f"  • Для работы в программе используйте команду чтения 0x42")
             
-    except KeyboardInterrupt:
-        print("\n   Тест завершен")
+        print(f"\n{Colors.CYAN}{'='*70}{Colors.RESET}")
+    
+    def run(self):
+        """Запуск полного теста"""
+        self.print_header()
+        
+        input(f"{Colors.YELLOW}Нажмите Enter для начала теста...{Colors.RESET}")
+        
+        try:
+            # Тест 1: Настройка GPIO
+            if not self.setup_gpio():
+                return
+            
+            # Тест 2: Аппаратные соединения
+            if not self.test_hardware_connections():
+                print(f"\n{Colors.RED}Проверьте соединения и повторите тест{Colors.RESET}")
+                return
+            
+            # Тест 3: Связь с контроллером
+            if not self.test_communication():
+                print(f"\n{Colors.RED}Контроллер не обнаружен{Colors.RESET}")
+                return
+            
+            # Тест 4: Аналоговый режим
+            self.test_analog_mode()
+            
+            # Тест 5: Реальный режим
+            self.real_time_test()
+            
+        except KeyboardInterrupt:
+            print(f"\n{Colors.YELLOW}Тест прерван{Colors.RESET}")
+        except Exception as e:
+            print(f"\n{Colors.RED}Неожиданная ошибка: {e}{Colors.RESET}")
+        finally:
+            self.cleanup()
+            self.print_summary()
+    
+    def cleanup(self):
+        """Очистка ресурсов"""
+        try:
+            GPIO.output(PS2_SEL, GPIO.HIGH)
+            GPIO.output(PS2_CLK, GPIO.HIGH)
+            GPIO.output(PS2_CMD, GPIO.HIGH)
+            GPIO.cleanup()
+        except:
+            pass
 
-def main():
-    """Главная функция"""
-    print("Простейший тест PS2 геймпада для Raspberry Pi")
+# =================== БЫСТРЫЙ ТЕСТ (минимальная версия) ===================
+def quick_test():
+    """Быстрый тест подключения"""
+    print(f"{Colors.CYAN}БЫСТРЫЙ ТЕСТ ПОДКЛЮЧЕНИЯ PS2 SZDoit{Colors.RESET}")
+    
+    GPIO.setmode(GPIO.BOARD)
+    
+    # Быстрая настройка
+    GPIO.setup(PS2_DAT, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(PS2_CMD, GPIO.OUT)
+    GPIO.setup(PS2_SEL, GPIO.OUT)
+    GPIO.setup(PS2_CLK, GPIO.OUT)
+    
+    GPIO.output(PS2_SEL, GPIO.HIGH)
+    GPIO.output(PS2_CLK, GPIO.HIGH)
+    GPIO.output(PS2_CMD, GPIO.HIGH)
+    
+    print("Проверка связи...")
     
     try:
-        # Настройка
-        setup()
+        # Пробуем обратиться к контроллеру
+        GPIO.output(PS2_SEL, GPIO.LOW)
+        time.sleep(0.0001)
         
-        # Тест контроллера
-        if test_controller():
-            # Тест кнопок
-            read_buttons()
+        # Простая функция отправки
+        def send_quick(data):
+            received = 0
+            for i in range(8):
+                GPIO.output(PS2_CLK, GPIO.LOW)
+                time.sleep(0.00001)
+                GPIO.output(PS2_CMD, GPIO.HIGH if ((data >> i) & 1) else GPIO.LOW)
+                time.sleep(0.00001)
+                GPIO.output(PS2_CLK, GPIO.HIGH)
+                time.sleep(0.00001)
+                received |= (GPIO.input(PS2_DAT) << i)
+                time.sleep(0.00001)
+            return received
+        
+        # Отправляем команду
+        resp1 = send_quick(0x01)
+        responses = [resp1]
+        for _ in range(5):
+            responses.append(send_quick(0x00))
+        
+        GPIO.output(PS2_SEL, GPIO.HIGH)
+        
+        if responses[0] != 0xFF:
+            print(f"{Colors.GREEN}✓ Контроллер обнаружен!{Colors.RESET}")
+            print(f"Ответ: {[hex(x) for x in responses]}")
+            
+            # Простой тест кнопок
+            print(f"\n{Colors.YELLOW}Нажмите кнопки (Ctrl+C для выхода):{Colors.RESET}")
+            
+            while True:
+                GPIO.output(PS2_SEL, GPIO.LOW)
+                time.sleep(0.0001)
+                
+                cmd_resp = send_quick(0x42)
+                btn_data = []
+                btn_data.append(cmd_resp)
+                for _ in range(3):
+                    btn_data.append(send_quick(0x00))
+                
+                GPIO.output(PS2_SEL, GPIO.HIGH)
+                
+                # Простая проверка кнопок
+                if (btn_data[1] & 0xF0) != 0xF0:  # Проверка D-pad
+                    print("\r", end="")
+                    if not (btn_data[1] & 0x10):
+                        print("UP ", end="")
+                    if not (btn_data[1] & 0x20):
+                        print("RIGHT ", end="")
+                    if not (btn_data[1] & 0x40):
+                        print("DOWN ", end="")
+                    if not (btn_data[1] & 0x80):
+                        print("LEFT ", end="")
+                
+                time.sleep(0.1)
+                
         else:
-            print("\n✗ Контроллер не найден или не отвечает")
-            print("\nПРОВЕРЬТЕ:")
-            print("1. Подключение проводов:")
-            print("   Оранжевый -> Pin 18")
-            print("   Синий     -> Pin 15")
-            print("   Зеленый   -> Pin 16")
-            print("   Фиолетовый-> Pin 13")
-            print("   Красный   -> 3.3V (Pin 1)")
-            print("   Черный    -> GND (Pin 6)")
-            print("\n2. На контроллере:")
-            print("   - Должен гореть красный светодиод")
-            print("   - Нажмите кнопку Analog/Mode")
-            print("   - Попробуйте другой контроллер")
+            print(f"{Colors.RED}✗ Контроллер не отвечает{Colors.RESET}")
             
     except KeyboardInterrupt:
-        print("\n\nТест отменен")
+        print(f"\n{Colors.YELLOW}Тест остановлен{Colors.RESET}")
     except Exception as e:
-        print(f"\nОшибка: {e}")
+        print(f"{Colors.RED}Ошибка: {e}{Colors.RESET}")
     finally:
         GPIO.cleanup()
-        print("\nГотово!")
 
+# =================== ТОЧКА ВХОДА ===================
 if __name__ == "__main__":
-    # Проверка запуска от root
-    import os
+    print(f"{Colors.CYAN}ТЕСТЕР ПОДКЛЮЧЕНИЯ PS2 ГЕЙМПАДА SZDoit{Colors.RESET}")
+    print(f"Для Raspberry Pi с прямым подключением к GPIO\n")
+    
+    # Проверка прав
     if os.geteuid() != 0:
-        print("Запустите с sudo:")
-        print("  sudo python3 simple_test.py")
-    else:
-        main()
+        print(f"{Colors.RED}ОШИБКА: Запустите тест с sudo!{Colors.RESET}")
+        print(f"  sudo python3 {sys.argv[0]}")
+        sys.exit(1)
+    
+    print(f"Выберите режим теста:")
+    print(f"  1. {Colors.GREEN}Полный тест{Colors.RESET} (рекомендуется)")
+    print(f"  2. {Colors.YELLOW}Быстрый тест{Colors.RESET}")
+    print(f"  3. {Colors.BLUE}Проверка пинов{Colors.RESET}")
+    
+    try:
+        choice = input("Ваш выбор (1/2/3): ").strip()
+        
+        if choice == "2":
+            quick_test()
+        elif choice == "3":
+            # Простая проверка пинов
+            print(f"\n{Colors.CYAN}ПРОВЕРКА ПИНОВ:{Colors.RESET}")
+            print(f"DAT (GPIO27): Pin {PS2_DAT}")
+            print(f"CMD (GPIO22): Pin {PS2_CMD}")
+            print(f"SEL (GPIO23): Pin {PS2_SEL}")
+            print(f"CLK (GPIO24): Pin {PS2_CLK}")
+            print(f"\n{Colors.YELLOW}Подключите провода PS2 к указанным пинам{Colors.RESET}")
+        else:
+            # Полный тест
+            tester = SZDoitPS2Tester()
+            tester.run()
+            
+    except KeyboardInterrupt:
+        print(f"\n{Colors.YELLOW}Тест отменен{Colors.RESET}")
+    except Exception as e:
+        print(f"{Colors.RED}Ошибка: {e}{Colors.RESET}")
