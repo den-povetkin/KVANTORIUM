@@ -1,7 +1,6 @@
 from WordPrinter import *
 from WordPrinter4 import *
-from WordPrinter import *
-from WordPrinter import *
+
 while True: 
     i1 = 0
     word = input('Слово: ')
