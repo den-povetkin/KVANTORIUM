@@ -47,6 +47,7 @@ def left():
     global im
     global rotate_i
     im += 1
+    print("робот2:",im)
     if im > 3 :
         im = 0
     rotate_i = rt[im]
@@ -54,6 +55,7 @@ def right():
     global im
     global rotate_i
     im -= 1
+    print("робот:",im)
     if im < 0 :
         im = 3
     rotate_i = rt[im]
@@ -65,6 +67,9 @@ def move_rotate():
     global rotate_i
     global x1
     global x2
+    x1 = 0
+    x2 = 0
+    rotate_i = rotate
     while rotate_i != want_rotate:
         left()
         x1 += 1
@@ -73,12 +78,17 @@ def move_rotate():
     while rotate_i != want_rotate:
         right()
         x2 += 1
+    rotate_i = rotate
+    im = ir
+    print(x1)
+    print(x2)
     if x1 > x2:
         move_l()
     else:
         move_r()
+        
 while start_y != end_y:
-    if start_y < end_y:
+    if start_y > end_y:
         want_rotate = 'верх'
     if start_y < end_y:
         want_rotate = 'низ'
