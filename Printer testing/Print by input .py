@@ -1,4 +1,6 @@
 from WordPrinter import *
+from WordPrinter4 import *
+
 while True: 
     i1 = 0
     word = input('Слово: ')
@@ -18,6 +20,15 @@ while True:
             printE()   
         if word[i1] == 'ё':
             printio()
+        if word[i1] == 'т':
+            printT()
+        if word[i1] == 'у':
+            printY()
+        if word[i1] == 'ф':
+            printF()
+        if word[i1] == 'х':
+            printh()
+        
         i1 = i1 + 1
    
 exitonclick()
