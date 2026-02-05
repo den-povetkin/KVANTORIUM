@@ -1,0 +1,123 @@
+map_i= [
+    [0, 1, 2, 3, 4, 5],
+    [0, 1, 2, 3, 4, 5],
+    [0, 1, 2, 3, 4, 5],
+    [0, 1, 2, 3, 4, 5],
+    [0, 1, 2, 3, 4, 5]
+    ]
+start_y = 0
+start_x = 0
+end_y = 3
+end_x = 5
+# 0 - вверх 1 - вправо 2 - вниз 3 - влево
+ir = 0
+rt = ['верх','право','низ','лево']
+rotate = rt[ir]
+want_rotate = ''
+im = ir
+il = ir
+rotate_i = rotate
+best_rotate = ''
+x1 = 0
+x2 = 0
+# движение
+def move():
+    print("вперёд")
+    global start_y
+    global start_x
+    if rotate == 'верх':
+        start_y -= 1
+    elif rotate == 'низ':
+        start_y += 1
+    elif rotate == 'право':
+        start_x += 1
+    elif rotate == 'лево':
+        start_x -= 1
+# повороты
+def move_l():
+    global ir
+    global rotate
+    print("влево")
+    ir -= 1
+    if ir < 0 :
+        ir = 3
+    rotate = rt[ir]
+def move_r():
+    global ir
+    global rotate
+    print("вправо")
+    ir += 1
+    if ir > 3 :
+        ir = 0
+    rotate = rt[ir]
+def left():
+    global il
+    global rotate_i
+    il -= 1
+    if il < 0 :
+        il = 3
+    print("робот2:",il)
+    rotate_i = rt[il]
+def right():
+    global im
+    global rotate_i
+    im += 1
+    if im > 3 :
+        im = 0
+    print("робот:",im)
+    rotate_i = rt[im]
+    
+def move_rotate():
+    global best_rotate
+    global want_rotate
+    global ir
+    global rotate_i
+    global x1
+    global x2
+    x1 = 0
+    x2 = 0
+    rotate_i = rotate
+    il = ir
+    while rotate_i != want_rotate:
+        left()
+        x1 += 1
+    rotate_i = rotate
+    im = ir
+    while rotate_i != want_rotate:
+        right()
+        x2 += 1
+    rotate_i = rotate
+    best_rotate = min(x1,x2)
+    print('лево',x1)
+    print('право',x2)
+    if x1 < x2:
+        for i in range(best_rotate):
+            move_l()
+    else:
+        for i in range(best_rotate):
+            move_r()
+        
+        
+# основной цикл            
+while start_y != end_y:
+    if start_y > end_y:
+        want_rotate = 'верх'
+    if start_y < end_y:
+        want_rotate = 'низ'
+    if rotate != want_rotate:
+        print('\\\\')
+        move_rotate()
+        print('навправление',rotate)
+        print('\\\\')
+    move()
+while start_x != end_x:
+    if start_x < end_x:
+        want_rotate = 'право'
+    if start_x > end_x:
+        want_rotate = 'лево'
+    if rotate != want_rotate:
+        print('\\\\')
+        move_rotate()
+        print('навправление',rotate)
+        print('\\\\')
+    move()
