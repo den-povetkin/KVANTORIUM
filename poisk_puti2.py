@@ -310,12 +310,12 @@ def main():
     path_finder = RobotPathFinder(
         matrix=environment,
         obstacles=[1],
-        allow_diagonal=True,
+        allow_diagonal=False,
         robot_size=1
     )
     
     # Определяем точки для посещения
-    points_to_visit = [(0, 0), (4,3),(7, 7)]
+    points_to_visit = [(0, 0), (7,7),(7,0),(0, 0)]
     
     print(f"\nТочки для посещения: {points_to_visit}")
     
@@ -327,7 +327,7 @@ def main():
     
     if full_path:
         # Оптимизируем путь
-        optimized_path = path_finder.optimize_path(full_path)
+ #       optimized_path = path_finder.optimize_path(full_path)
         
         print(f"\n✅ Путь найден!")
         print(f"Длина полного пути: {len(full_path)} шагов")
