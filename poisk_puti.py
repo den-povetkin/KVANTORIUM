@@ -70,7 +70,7 @@ if __name__ == "__main__":
         [0, 1, 0, 0]
     ]
     
-    start = (0, 0)
+    start = (0, 2)
     end = (3, 3)
     
     path = find_path_in_matrix(matrix, start, end)
