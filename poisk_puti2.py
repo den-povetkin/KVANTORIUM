@@ -51,6 +51,9 @@ class RobotPathFinder:
         self.allow_diagonal = allow_diagonal
         self.robot_size = robot_size
         
+        # Сохраняем начальное состояние матрицы для отслеживания изменений
+        self.initial_matrix = [row[:] for row in matrix]
+        
         # Направления движения
         self.directions = [
             Direction.UP, Direction.DOWN, 
@@ -61,6 +64,34 @@ class RobotPathFinder:
                 Direction.UP_LEFT, Direction.UP_RIGHT,
                 Direction.DOWN_LEFT, Direction.DOWN_RIGHT
             ])
+    
+    def update_environment(self, new_matrix: List[List[int]]) -> bool:
+        """
+        Обновление информации о среде и проверка, изменилась ли она
+        
+        Args:
+            new_matrix: Новая матрица среды
+            
+        Returns:
+            bool: True если среда изменилась, False если нет
+        """
+        if len(new_matrix) != self.rows or len(new_matrix[0]) != self.cols:
+            raise ValueError("Размер новой матрицы не соответствует текущему")
+        
+        # Проверяем, изменилась ли среда
+        environment_changed = False
+        for i in range(self.rows):
+            for j in range(self.cols):
+                if self.matrix[i][j] != new_matrix[i][j]:
+                    environment_changed = True
+                    break
+            if environment_changed:
+                break
+        
+        # Обновляем матрицу среды
+        self.matrix = new_matrix
+        
+        return environment_changed
     
     def is_cell_free(self, row: int, col: int) -> bool:
         """
@@ -318,6 +349,40 @@ class RobotPathFinder:
         
         return total_cost
     
+    def replan_path(self, current_path: List[Tuple[int, int]],
+                      current_position: Tuple[int, int],
+                      goal_position: Tuple[int, int],
+                      method: str = 'astar') -> Optional[List[Tuple[int, int]]]:
+        """
+        Перепланирование пути при изменении среды
+        
+        Args:
+            current_path: Текущий путь робота
+            current_position: Текущая позиция робота
+            goal_position: Целевая позиция
+            method: Метод поиска ('bfs' или 'astar')
+            
+        Returns:
+            Optional[List[Tuple[int, int]]]: Новый путь или None если путь не найден
+        """
+        # Проверяем, достижима ли целевая позиция из текущей позиции
+        if not self.is_valid_position(*goal_position):
+            print("Целевая позиция недостижима из-за изменений в среде")
+            return None
+        
+        # Проверяем, достижима ли текущая позиция
+        if not self.is_valid_position(*current_position):
+            print("Текущая позиция робота стала недостижимой")
+            return None
+        
+        # Выбираем метод поиска
+        if method.lower() == 'bfs':
+            new_path = self.find_path_bfs(current_position, goal_position)
+        else:
+            new_path = self.find_path_astar(current_position, goal_position)
+        
+        return new_path
+    
     def visualize_path(self, path: List[Tuple[int, int]] = None,
                       points: List[Tuple[int, int]] = None) -> str:
         """
@@ -378,7 +443,7 @@ def main():
     environment = [
         [0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 1, 0, 0, 0, 0, 0],
-        [0, 0, 0, 1, 0, 1, 1, 1, 0],
+        [0, 0, 0, 1, 0, 0, 0, 0, 0],
         [0, 1, 1, 1, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 1, 0, 0, 0],
         [0, 0, 1, 0, 1, 1, 0, 0, 0],
@@ -400,7 +465,7 @@ def main():
     )
     
     # Определяем точки для посещения
-    points_to_visit = [(0, 0), (8,8),(8,0),(0, 0)]
+    points_to_visit = [(0, 0), (8,8)]
     
     print(f"\nТочки для посещения: {points_to_visit}")
     
@@ -424,6 +489,51 @@ def main():
         # Визуализация
         print("\nВизуализация пути:")
         print(path_finder.visualize_path(path=full_path, points=points_to_visit))
+        
+        # Демонстрация перепланирования
+        print("\n=== Демонстрация перепланирования пути ===")
+        
+        # Симулируем изменение среды (например, появление нового препятствия)
+        new_environment = [row[:] for row in environment]  # Копируем матрицу
+        new_environment[0][6] = 1  # Добавляем препятствие
+        new_environment[2][8] = 1  # Добавляем препятствие
+        
+        print("Среда изменена - добавлены новые препятствия")
+        
+        # Обновляем информацию о среде
+        if path_finder.update_environment(new_environment):
+            print("Среда была изменена, требуется перепланирование")
+            
+            # Предположим, робот находится на середине пути
+            current_position = full_path[len(full_path)//4]
+            goal_position = full_path[-1]
+            
+            print(f"Текущая позиция робота: {current_position}")
+            print(f"Целевая позиция: {goal_position}")
+            
+            # Перепланируем путь
+            new_path = path_finder.replan_path(
+                full_path,
+                current_position,
+                goal_position,
+                method='astar'
+            )
+            
+            if new_path:
+                print(f"\n✅ Новый путь найден!")
+                print(f"Длина нового пути: {len(new_path)} шагов")
+                
+                print("\nНовый путь:")
+                for i, pos in enumerate(new_path):
+                    print(f"  Шаг {i:2d}: {pos}")
+                
+                # Визуализация нового пути
+                print("\nВизуализация нового пути:")
+                print(path_finder.visualize_path(path=new_path, points=[current_position, goal_position]))
+            else:
+                print("❌ Не удалось найти новый путь")
+        else:
+            print("Среда не изменилась, перепланирование не требуется")
 
 if __name__ == "__main__":
     main()
