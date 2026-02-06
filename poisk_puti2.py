@@ -315,7 +315,7 @@ def main():
     )
     
     # Определяем точки для посещения
-    points_to_visit = [(0, 0),(0,7),(7, 7)]
+    points_to_visit = [(0, 0), (4,3),(7, 7)]
     
     print(f"\nТочки для посещения: {points_to_visit}")
     
@@ -331,37 +331,14 @@ def main():
         
         print(f"\n✅ Путь найден!")
         print(f"Длина полного пути: {len(full_path)} шагов")
-        print(f"Длина оптимизированного пути: {len(optimized_path)} шагов")
-        print(f"Стоимость пути: {path_finder.calculate_path_cost(full_path):.2f}")
         
         print("\nПолный путь:")
         for i, pos in enumerate(full_path):
             print(f"  Шаг {i:2d}: {pos}")
-        
-        print("\nОптимизированный путь:")
-        for i, pos in enumerate(optimized_path):
-            print(f"  Шаг {i:2d}: {pos}")
-        
+       
         # Визуализация
         print("\nВизуализация пути:")
         print(path_finder.visualize_path(path=full_path, points=points_to_visit))
-'''        
-        # Поиск пути между двумя точками
-        print("\n=== Пример поиска между двумя точками ===")
-        start_point = (0, 0)
-        end_point = (7, 7)
-        
-        single_path = path_finder.find_path_astar(start_point, end_point)
-        if single_path:
-            print(f"Путь от {start_point} до {end_point}:")
-            print(f"Длина: {len(single_path)} шагов")
-            print(f"Стоимость: {path_finder.calculate_path_cost(single_path):.2f}")
-            
-            print("\nВизуализация:")
-            print(path_finder.visualize_path(path=single_path))
-    else:
-        print("❌ Не удалось найти путь через все точки")
 
-'''
 if __name__ == "__main__":
     main()
