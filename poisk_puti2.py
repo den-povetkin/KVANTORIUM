@@ -5,7 +5,19 @@ from enum import Enum
 
 
 class Direction(Enum):
-    """Направления движения робота"""
+    """
+    Перечисление направлений движения робота
+    
+    Attributes:
+        UP: Движение вверх (по строкам вверх)
+        DOWN: Движение вниз (по строкам вниз)
+        LEFT: Движение влево (по столбцам влево)
+        RIGHT: Движение вправо (по столбцам вправо)
+        UP_LEFT: Движение вверх-влево (диагональ)
+        UP_RIGHT: Движение вверх-вправо (диагональ)
+        DOWN_LEFT: Движение вниз-влево (диагональ)
+        DOWN_RIGHT: Движение вниз-вправо (диагональ)
+    """
     UP = (-1, 0)
     DOWN = (1, 0)
     LEFT = (0, -1)
@@ -51,7 +63,16 @@ class RobotPathFinder:
             ])
     
     def is_cell_free(self, row: int, col: int) -> bool:
-        """Проверка, свободна ли клетка (учитывает размер робота)"""
+        """
+        Проверка, свободна ли клетка с учетом размера робота
+        
+        Args:
+            row: Номер строки проверяемой клетки
+            col: Номер столбца проверяемой клетки
+            
+        Returns:
+            bool: True если клетка и все клетки, занимаемые роботом свободны, False в противном случае
+        """
         # Проверяем все клетки, занимаемые роботом
         for dr in range(self.robot_size):
             for dc in range(self.robot_size):
@@ -62,13 +83,31 @@ class RobotPathFinder:
         return True
     
     def is_valid_position(self, row: int, col: int) -> bool:
-        """Проверка валидности позиции для робота"""
+        """
+        Проверка валидности позиции для робота с учетом его размера
+        
+        Args:
+            row: Номер строки проверяемой позиции
+            col: Номер столбца проверяемой позиции
+            
+        Returns:
+            bool: True если позиция валидна для робота, False в противном случае
+        """
         return (0 <= row < self.rows - self.robot_size + 1 and 
                 0 <= col < self.cols - self.robot_size + 1 and
                 self.is_cell_free(row, col))
     
     def get_neighbors(self, row: int, col: int) -> List[Tuple[int, int]]:
-        """Получение всех доступных соседних позиций"""
+        """
+        Получение всех доступных соседних позиций с учетом разрешенных направлений движения
+        
+        Args:
+            row: Номер строки текущей позиции
+            col: Номер столбца текущей позиции
+            
+        Returns:
+            List[Tuple[int, int]]: Список доступных соседних позиций (row, col)
+        """
         neighbors = []
         for direction in self.directions:
             dr, dc = direction.value
@@ -77,17 +116,17 @@ class RobotPathFinder:
                 neighbors.append((new_row, new_col))
         return neighbors
     
-    def find_path_bfs(self, start: Tuple[int, int], 
+    def find_path_bfs(self, start: Tuple[int, int],
                      end: Tuple[int, int]) -> Optional[List[Tuple[int, int]]]:
         """
-        Поиск кратчайшего пути с помощью BFS
+        Поиск кратчайшего пути с помощью алгоритма поиска в ширину (BFS)
         
         Args:
-            start: стартовая позиция (row, col)
-            end: конечная позиция (row, col)
+            start: Стартовая позиция (row, col)
+            end: Конечная позиция (row, col)
             
         Returns:
-            Список позиций от start до end или None если путь не найден
+            Optional[List[Tuple[int, int]]]: Список позиций от start до end или None если путь не найден
         """
         if not (self.is_valid_position(*start) and self.is_valid_position(*end)):
             return None
@@ -110,11 +149,18 @@ class RobotPathFinder:
         
         return None
     
-    def find_path_astar(self, start: Tuple[int, int], 
+    def find_path_astar(self, start: Tuple[int, int],
                        end: Tuple[int, int]) -> Optional[List[Tuple[int, int]]]:
         """
-        Поиск пути с помощью алгоритма A*
-        Более эффективен для больших матриц
+        Поиск пути с помощью алгоритма A* (A-star)
+        Более эффективен для больших матриц по сравнению с BFS
+        
+        Args:
+            start: Стартовая позиция (row, col)
+            end: Конечная позиция (row, col)
+            
+        Returns:
+            Optional[List[Tuple[int, int]]]: Список позиций от start до end или None если путь не найден
         """
         if not (self.is_valid_position(*start) and self.is_valid_position(*end)):
             return None
@@ -164,17 +210,17 @@ class RobotPathFinder:
         
         return None
     
-    def find_path_through_points(self, points: List[Tuple[int, int]], 
+    def find_path_through_points(self, points: List[Tuple[int, int]],
                                 method: str = 'astar') -> Optional[List[Tuple[int, int]]]:
         """
         Поиск пути через несколько точек в заданном порядке
         
         Args:
-            points: список точек для посещения в порядке [p1, p2, p3, ...]
-            method: метод поиска ('bfs' или 'astar')
+            points: Список точек для посещения в порядке [p1, p2, p3, ...]
+            method: Метод поиска ('bfs' или 'astar')
             
         Returns:
-            Полный путь через все точки
+            Optional[List[Tuple[int, int]]]: Полный путь через все точки или None если путь не найден
         """
         if len(points) < 2:
             return points if points else None
@@ -207,6 +253,12 @@ class RobotPathFinder:
     def optimize_path(self, path: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
         """
         Упрощение пути - удаление промежуточных точек на прямой линии
+        
+        Args:
+            path: Исходный путь в виде списка позиций
+            
+        Returns:
+            List[Tuple[int, int]]: Оptимизированный путь
         """
         if len(path) < 3:
             return path
@@ -225,14 +277,32 @@ class RobotPathFinder:
         optimized.append(path[-1])
         return optimized
     
-    def _are_points_collinear(self, p1: Tuple[int, int], 
-                            p2: Tuple[int, int], 
+    def _are_points_collinear(self, p1: Tuple[int, int],
+                            p2: Tuple[int, int],
                             p3: Tuple[int, int]) -> bool:
-        """Проверка, лежат ли три точки на одной прямой"""
+        """
+        Проверка, лежат ли три точки на одной прямой
+        
+        Args:
+            p1: Первая точка (row, col)
+            p2: Вторая точка (row, col)
+            p3: Третья точка (row, col)
+            
+        Returns:
+            bool: True если точки лежат на одной прямой, False в противном случае
+        """
         return (p2[0] - p1[0]) * (p3[1] - p2[1]) == (p3[0] - p2[0]) * (p2[1] - p1[1])
     
     def calculate_path_cost(self, path: List[Tuple[int, int]]) -> float:
-        """Вычисление стоимости пути"""
+        """
+        Вычисление стоимости пути
+        
+        Args:
+            path: Путь в виде списка позиций
+            
+        Returns:
+            float: Стоимость пути
+        """
         if len(path) < 2:
             return 0
         
@@ -250,7 +320,16 @@ class RobotPathFinder:
     
     def visualize_path(self, path: List[Tuple[int, int]] = None,
                       points: List[Tuple[int, int]] = None) -> str:
-        """Визуализация пути робота в матрице"""
+        """
+        Визуализация пути робота в матрице
+        
+        Args:
+            path: Путь робота в виде списка позиций
+            points: Список отмеченных точек
+            
+        Returns:
+            str: Строковое представление визуализации пути
+        """
         visualization = []
         
         for r in range(self.rows):
@@ -291,6 +370,10 @@ class RobotPathFinder:
 
 # Пример использования
 def main():
+    """
+    Пример использования класса RobotPathFinder
+    Демонстрирует поиск пути для робота через несколько точек
+    """
     # Пример матрицы среды (0 - свободно, 1 - препятствие)
     environment = [
         [0, 0, 0, 0, 0, 0, 0, 0],
