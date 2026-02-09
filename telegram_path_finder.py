@@ -1,7 +1,7 @@
 import telebot
 from telebot import types
 import api_key
-from poisk_puti3 import RobotPathFinder
+from poisk_puti2 import RobotPathFinder
 
 # Инициализация бота
 api_key = api_key.api['api_key']
@@ -227,5 +227,4 @@ if __name__ == "__main__":
     # Инициализация среды при запуске
     initialize_environment()
     # Запуск бота
-    bot.polling()
     bot.polling()

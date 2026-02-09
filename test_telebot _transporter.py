@@ -62,8 +62,8 @@ def func(message):
 
     elif message.text == "Ручное управление":
         bot.send_message(message.chat.id, text="Привет тут будет ручное управление")
-        #bot.reply_to(message, "Привет! Я робот-Пико. Используй кнопки ниже для управления.",
-        #reply_markup=create_keyboard())
+        bot.reply_to(message, "Привет! Я робот-Пико. Используй кнопки ниже для управления.",
+        reply_markup=create_robot_keyboard())
 
 
     else:
@@ -76,8 +76,8 @@ def long_text(message): #! отправка длинного сообщения 
             data = file.read()
         bot.send_message(message.chat.id, text=data)
 
-'''
-def create_keyboard():
+
+def create_robot_keyboard():
     keyboard = types.InlineKeyboardMarkup()
 
     button_forward = types.InlineKeyboardButton(text="Вперед", callback_data="forward")
@@ -91,30 +91,6 @@ def create_keyboard():
     keyboard.add(button_stop)
     
     return keyboard
-'''
-#@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "Привет! Я робот-Пико. Используй кнопки ниже для управления.",
-                 reply_markup=create_keyboard())
-'''
-@bot.callback_query_handler(func=lambda call: True)
-def handle_query(call):
-    if call.data == "forward":
-        robot.forward()
-        bot.answer_callback_query(call.id, "Здравое движение(вперед)")
-    elif call.data == "backward":
-        robot.backward()
-        bot.answer_callback_query(call.id, "Я стал заднеприводным(еду назад)")
-    elif call.data == "left":
-        robot.left()
-        bot.answer_callback_query(call.id, "Налево")
-    elif call.data == "right":
-        robot.right()
-        bot.answer_callback_query(call.id, "Направо")
-    elif call.data == "stop":
-        robot.stop()
-        bot.answer_callback_query(call.id, "Стою")
-'''
 
 environment = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -315,6 +291,21 @@ def handle_query(call):
             reply_markup=create_keyboard()
         )
         bot.answer_callback_query(call.id, "Состояние сброшено")
+    elif call.data == "forward":
+        robot.forward()
+        bot.answer_callback_query(call.id, "Здравое движение(вперед)")
+    elif call.data == "backward":
+        robot.backward()
+        bot.answer_callback_query(call.id, "Я стал заднеприводным(еду назад)")
+    elif call.data == "left":
+        robot.left()
+        bot.answer_callback_query(call.id, "Налево")
+    elif call.data == "right":
+        robot.right()
+        bot.answer_callback_query(call.id, "Направо")
+    elif call.data == "stop":
+        robot.stop()
+        bot.answer_callback_query(call.id, "Стою")
 
 bot.infinity_polling()
 
