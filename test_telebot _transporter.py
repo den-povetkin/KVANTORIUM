@@ -93,16 +93,11 @@ def create_robot_keyboard():
     return keyboard
 
 environment = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 1, 0, 1, 1, 0, 0, 0],
-    [0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 1, 0, 1, 1, 0, 0, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1, 1, 1, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0],
+    [0, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0],
+    [0, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0],
 ]
 
 path_finder = RobotPathFinder(
@@ -133,7 +128,7 @@ def create_point_input_keyboard():
     
     # Создаем кнопки для строк (0-9)
     row_buttons = []
-    for i in range(10):
+    for i in range(5):
         row_buttons.append(types.InlineKeyboardButton(text=str(i), callback_data=f"row_{i}"))
     
     # Добавляем кнопки по 5 в ряд
@@ -152,7 +147,7 @@ def create_column_keyboard(selected_row):
     
     # Создаем кнопки для столбцов (0-9)
     col_buttons = []
-    for i in range(10):
+    for i in range(5):
         col_buttons.append(types.InlineKeyboardButton(text=str(i), callback_data=f"point_{selected_row}_{i}"))
     
     # Добавляем кнопки по 5 в ряд
