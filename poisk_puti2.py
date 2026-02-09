@@ -483,7 +483,6 @@ def main():
         
         print(f"\n✅ Путь найден!")
         print(f"Длина полного пути: {len(full_path)} шагов")
-        
         print("\nПолный путь:")
         for i, pos in enumerate(full_path):
             print(f"  Шаг {i:2d}: {pos}")

@@ -24,14 +24,11 @@ while True:
     
     if uid is not None:
         cid=[hex(i) for i in uid]
-        #print(cid[0])
-        cid=str(cid)
-        cid = cid.replace("x", ".")
-        cid = cid.replace("'", "")
-        cid = cid.replace("[", "")
-        cid = cid.replace("]", "")
-        #cid = cid.split(',')
-        print(cid[0:3])
+        cidx=str(cid[0])
+        cidy=str(cid[1])
+
+        #cid = cid.replace("x", ".")
+        print('Текущая координата', cidx[2],cidy[2])
 
         #print("Найдена карта с UID:", [hex(i) for i in uid])
     
