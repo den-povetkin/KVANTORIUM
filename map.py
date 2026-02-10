@@ -56,7 +56,6 @@ def left():
     il -= 1
     if il < 0 :
         il = 3
-    print("робот2:",il)
     rotate_i = rt[il]
 def right():
     global im
@@ -64,7 +63,6 @@ def right():
     im += 1
     if im > 3 :
         im = 0
-    print("робот:",im)
     rotate_i = rt[im]
     
 def move_rotate():
@@ -88,8 +86,6 @@ def move_rotate():
         x2 += 1
     rotate_i = rotate
     best_rotate = min(x1,x2)
-    print('лево',x1)
-    print('право',x2)
     if x1 < x2:
         for i in range(best_rotate):
             move_l()
@@ -97,27 +93,39 @@ def move_rotate():
         for i in range(best_rotate):
             move_r()
         
-        
-# основной цикл            
-while start_y != end_y:
-    if start_y > end_y:
-        want_rotate = 'верх'
-    if start_y < end_y:
-        want_rotate = 'низ'
-    if rotate != want_rotate:
-        print('\\\\')
-        move_rotate()
-        print('навправление',rotate)
-        print('\\\\')
-    move()
-while start_x != end_x:
-    if start_x < end_x:
-        want_rotate = 'право'
-    if start_x > end_x:
-        want_rotate = 'лево'
-    if rotate != want_rotate:
-        print('\\\\')
-        move_rotate()
-        print('навправление',rotate)
-        print('\\\\')
-    move()
+points = ['1.1','2.3','5.5','1,1']
+point_start = 0
+point_end = 1
+# основной цикл
+for i in range(len(points)-1):
+
+    start_y = int(points[point_start][0])
+    start_x = int(points[point_start][2])
+    
+    end_y = int(points[point_end][0])
+    end_x = int(points[point_end][2])
+    
+    while start_y != end_y:
+        if start_y > end_y:
+            want_rotate = 'верх'
+        if start_y < end_y:
+            want_rotate = 'низ'
+        if rotate != want_rotate:
+            print('\\\\')
+            move_rotate()
+            print('навправление',rotate)
+            print('\\\\')
+        move()
+    while start_x != end_x:
+        if start_x < end_x:
+            want_rotate = 'право'
+        if start_x > end_x:
+            want_rotate = 'лево'
+        if rotate != want_rotate:
+            print('\\\\')
+            move_rotate()
+            print('навправление',rotate)
+            print('\\\\')
+        move()
+    point_start += 1
+    point_end += 1
