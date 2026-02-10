@@ -64,6 +64,7 @@ def func(message):
         
     elif message.text == "Показать карту":
         bot.send_message(message.chat.id, text="Привет тут будем Показать карту")
+        search_point()
 
         
     elif message.text == "Калибровка":
@@ -104,6 +105,12 @@ def create_robot_keyboard():
     
     return keyboard
 
+current_path = {
+        'past': ['(0, 0)'],
+        'current': ['(0, 0)'],
+        'future': ['(0, 0)'],
+                }
+           
 environment = [
     [0, 0, 0, 0, 0],
     [0, 1, 1, 1, 0],
@@ -203,19 +210,33 @@ def first_point():
             cid=[hex(i) for i in uid]
             cidx=str(cid[0])
             cidy=str(cid[1])
-            
-            row=int(cidx[2])
-            col=int(cidy[2])
         
             row, col = int(cidx[2]), int(cidy[2])
             points_to_visit.append((row, col))
           
-
-            #cid = cid.replace("x", ".")
             print('Текущая координата', cidx[2],cidy[2])
             print(points_to_visit)
     
-
+def search_point():
+    
+    print("Ожидание NFC метки...")
+    status = True
+    while status == True:
+        # Проверка наличия карты
+        uid = pn532.read_passive_target(timeout=0.5)
+        
+        if uid is not None:
+            status = False
+            cid=[hex(i) for i in uid]
+            cidx=str(cid[0])
+            cidy=str(cid[1])
+            
+            row=int(cidx[2])
+            col=int(cidy[2])
+                    
+            print(f'Текущая координата {row},{col}')
+    return row, col
+            
 @bot.message_handler(commands=['start'])
 def start_welcome(message):
     global points_to_visit
