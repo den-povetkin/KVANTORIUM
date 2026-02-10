@@ -255,3 +255,4 @@ class RobotPathFinder:
             visualization.append(''.join(row_str))
         
         return '\n'.join(visualization)
+#print(full_path)

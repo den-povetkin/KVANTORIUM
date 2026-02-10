@@ -6,6 +6,10 @@ from gpiozero import Motor
 from time import sleep
 from RobotPathFinder import RobotPathFinder
 
+import board
+import busio
+from adafruit_pn532.i2c import PN532_I2C
+import time
 
 api_key=api_key.api['api_key']
 bot=telebot.TeleBot(api_key)
@@ -14,6 +18,13 @@ bot=telebot.TeleBot(api_key)
 ADMIN = 0
 
 robot = Robot(left=Motor(23, 24), right=Motor(27, 22))
+
+# Инициализация I2C
+i2c = busio.I2C(board.SCL, board.SDA)
+pn532 = PN532_I2C(i2c, debug=False)
+
+# Настройка PN532
+pn532.SAM_configuration()
 
 @bot.message_handler(commands=['id'])
 def send_id(message: types.Message):
@@ -53,6 +64,7 @@ def func(message):
         
     elif message.text == "Показать карту":
         bot.send_message(message.chat.id, text="Привет тут будем Показать карту")
+
         
     elif message.text == "Калибровка":
         bot.send_message(message.chat.id, text="Привет тут будем калибровать шаг робота")
@@ -177,6 +189,33 @@ def visualize_path_for_telegram(path, points=None):
     visualization = path_finder.visualize_path(path=path, points=points)
     return f"Визуализация пути:\n```\n{visualization}\n```"
 
+def first_point():
+    print("Ожидание NFC метки...")
+    print("Поднесите карту к считывателю")
+    uid = ''
+    status = True
+    while status == True:
+        # Проверка наличия карты
+        uid = pn532.read_passive_target(timeout=0.5)
+        
+        if uid is not None:
+            status = False
+            cid=[hex(i) for i in uid]
+            cidx=str(cid[0])
+            cidy=str(cid[1])
+            
+            row=int(cidx[2])
+            col=int(cidy[2])
+        
+            row, col = int(cidx[2]), int(cidy[2])
+            points_to_visit.append((row, col))
+          
+
+            #cid = cid.replace("x", ".")
+            print('Текущая координата', cidx[2],cidy[2])
+            print(points_to_visit)
+    
+
 @bot.message_handler(commands=['start'])
 def start_welcome(message):
     global points_to_visit
@@ -184,6 +223,7 @@ def start_welcome(message):
     
     bot.reply_to(message, "Привет! Я робот-Пико. Используй кнопки ниже для управления.",
                  reply_markup=create_keyboard())
+    first_point()
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_query(call):
