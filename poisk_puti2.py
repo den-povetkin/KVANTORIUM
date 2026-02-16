@@ -476,8 +476,8 @@ def main():
         points=points_to_visit,
         method='astar'
     )
-    
     if full_path:
+        print(full_path)
         # Оптимизируем путь
  #       optimized_path = path_finder.optimize_path(full_path)
         
