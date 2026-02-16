@@ -477,8 +477,7 @@ def main():
         method='astar'
     )
     if full_path:
-        print(full_path)
-        # Оптимизируем путь
+  # Оптимизируем путь
  #       optimized_path = path_finder.optimize_path(full_path)
         
         print(f"\n✅ Путь найден!")
