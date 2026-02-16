@@ -237,7 +237,7 @@ def search_point():
             print(f'Текущая координата {row},{col}')
     return row, col
             
-@bot.message_handler(commands=['start'])
+#@bot.message_handler(commands=['start'])
 def start_welcome(message):
     global points_to_visit
     points_to_visit = []  # Сброс точек при новом запуске
