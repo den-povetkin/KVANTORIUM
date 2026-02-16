@@ -69,10 +69,10 @@ def Goto(points):
     for i in range(len(points)-1):
 
         start_y = int(points[point_start][0])
-        start_x = int(points[point_start][2])
+        start_x = int(points[point_start][1])
         
         end_y = int(points[point_end][0])
-        end_x = int(points[point_end][2])
+        end_x = int(points[point_end][1])
         
         while start_y != end_y:
             if start_y > end_y:
@@ -92,5 +92,3 @@ def Goto(points):
             move()
         point_start += 1
         point_end += 1
-point = ['0.1','0.2','0,3','0,4','1.4','2,4','3,4','4,4','4,5','4,6','4,7']
-Goto(point)
