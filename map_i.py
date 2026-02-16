@@ -42,8 +42,6 @@ def Goto(points):
             start_x += 1
         elif rotate == 'лево':
             start_x -= 1
-        print(start_x)
-        return start_x
         
     # повороты
     #def move_l():

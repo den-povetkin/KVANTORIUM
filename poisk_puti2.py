@@ -468,7 +468,7 @@ def main():
     )
     
     # Определяем точки для посещения
-    points_to_visit = [(0, 0), (9,9)]
+    points_to_visit = [(0, 0), (6,5)]
     
     print(f"\nТочки для посещения: {points_to_visit}")
     
