@@ -6,6 +6,10 @@ def Goto(points):
     global want_rotate
     global start_y
     global start_x
+    global rotate_i
+    global best_rotate
+    global x1
+    global x2
     map_i= [
         [0, 1, 2, 3, 4, 5],
         [0, 1, 2, 3, 4, 5],
@@ -14,7 +18,7 @@ def Goto(points):
         [0, 1, 2, 3, 4, 5]
         ]
     # 0 - вверх 1 - вправо 2 - вниз 3 - влево
-    ir = 0
+    ir = 1
     rt = ['верх','право','низ','лево']
     rotate = rt[ir]
     want_rotate = ''
@@ -73,6 +77,8 @@ def Goto(points):
         global best_rotate
         global want_rotate
         global ir
+        global il
+        global im
         global rotate_i
         global x1
         global x2
@@ -110,9 +116,9 @@ def Goto(points):
         
         while start_y != end_y:
             if start_y > end_y:
-                want_rotate = 'верх'
-            if start_y < end_y:
                 want_rotate = 'низ'
+            if start_y < end_y:
+                want_rotate = 'верх'
             if rotate != want_rotate:
                 move_rotate()
             move()
@@ -126,5 +132,5 @@ def Goto(points):
             move()
         point_start += 1
         point_end += 1
-point = ['1.1','1.2','1,3','1,4','2,4','3,4','4,4','4,5','4,6','4,7']
+point = ['1.1','1.2','1.3','1.4','2.4','3.4','4.4','4.5','4.6','4.7']
 Goto(point)
