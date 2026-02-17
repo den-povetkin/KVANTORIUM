@@ -6,10 +6,14 @@ from gpiozero import Motor
 from time import sleep
 from RobotPathFinder import RobotPathFinder
 
+from time import sleep
+
 import board
 import busio
 from adafruit_pn532.i2c import PN532_I2C
 import time
+global full_path
+full_path = None
 
 api_key=api_key.api['api_key']
 bot=telebot.TeleBot(api_key)
@@ -228,6 +232,78 @@ def first_point():
             print('Текущая координата', cidx[2],cidy[2])
             print(points_to_visit)
     
+
+ir = 1
+rt = ['верх','право','низ','лево']
+rotate = rt[ir]
+want_rotate = ''
+start_x = 0
+start_y = 0
+end_x = 0
+end_y = 0
+point_start = 0
+point_end = 1
+def Goto(full_path):
+    global point_start
+    global point_end
+    points = full_path  # Use the passed parameter
+    
+    # Check if full_path is valid
+    if not points:
+        print("Путь не найден")
+        return
+    
+    def move(start_x, start_y):
+        print("вперёд")
+        if rotate == 'верх':
+            start_y -= 1
+        elif rotate == 'низ':
+            start_y += 1
+        elif rotate == 'право':
+            start_x += 1
+        elif rotate == 'лево':
+            start_x -= 1
+        return start_x, start_y
+        
+    def move_r(ir,rotate):
+        print("вправо")
+        ir += 1
+        if ir > 3 :
+            ir = 0
+        rotate = rt[ir]
+        return ir, rotate
+        
+ 
+    # основной цикл
+    for i in range(len(points)-1):
+
+        start_y = int(points[point_start][0])
+        start_x = int(points[point_start][1])
+        
+        end_y = int(points[point_end][0])
+        end_x = int(points[point_end][1])
+        
+        if start_y != end_y:
+            if start_y > end_y:
+                want_rotate = 'верх'
+            if start_y < end_y:
+                want_rotate = 'низ'
+            if rotate != want_rotate:
+                move_r(ir,rotate)
+            move(start_x, start_y)
+        if start_x != end_x:
+            if start_x < end_x:
+                want_rotate = 'право'
+            if start_x > end_x:
+                want_rotate = 'лево'
+            if rotate != want_rotate:
+                move_r(ir,rotate)
+            move(start_x, start_y)
+        point_start += 1
+        point_end += 1
+        
+
+
 def search_point():
     
     print("Ожидание NFC метки...")
@@ -303,6 +379,7 @@ def handle_query(call):
         bot.answer_callback_query(call.id, "Добавление точки отменено")
         
     elif call.data == "find_path":
+        global full_path
         if len(points_to_visit) < 2:
             bot.answer_callback_query(call.id, "Добавьте хотя бы 2 точки для поиска пути")
             return
@@ -312,8 +389,9 @@ def handle_query(call):
             points=points_to_visit,
             method='astar'
         )
-        
+
         if full_path:
+            
             # Отправляем текстовое представление пути
             path_text = format_path_for_telegram(full_path)
             bot.send_message(
@@ -334,8 +412,9 @@ def handle_query(call):
             #message_id=call.message.message_id,
             text="Запустить робота?",
             reply_markup=create_yesno_keyboard()
-        )
+            )
             bot.answer_callback_query(call.id, "Путь найден!")
+        
 
 
             
@@ -368,6 +447,14 @@ def handle_query(call):
             reply_markup=create_keyboard()
         )
         bot.answer_callback_query(call.id, "Состояние сброшено")
+        
+    elif call.data == "yes":
+        Goto(full_path)
+        bot.answer_callback_query(call.id, "Запуск робота")
+        
+    elif call.data == "no":
+        start_welcome()
+        bot.answer_callback_query(call.id, "Галя у нас отмена")
         
     elif call.data == "forward":
         robot.forward()
