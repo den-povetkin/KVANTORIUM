@@ -253,7 +253,7 @@ def start_welcome(message):
     global points_to_visit
     points_to_visit = []  # Сброс точек при новом запуске
     
-    bot.reply_to(message, "Привет! Я робот-Пико. Используй кнопки ниже для управления.",
+    bot.reply_to(message, "Привет давай построим маршрут.",
                  reply_markup=create_keyboard())
     first_point()
 
@@ -329,6 +329,12 @@ def handle_query(call):
                 parse_mode="Markdown"
             )
             
+            bot.send_message(
+            chat_id=call.message.chat.id,
+            #message_id=call.message.message_id,
+            text="Запустить робота?",
+            reply_markup=create_yesno_keyboard()
+        )
             bot.answer_callback_query(call.id, "Путь найден!")
 
 
@@ -362,18 +368,23 @@ def handle_query(call):
             reply_markup=create_keyboard()
         )
         bot.answer_callback_query(call.id, "Состояние сброшено")
+        
     elif call.data == "forward":
         robot.forward()
         bot.answer_callback_query(call.id, "Здравое движение(вперед)")
+        
     elif call.data == "backward":
         robot.backward()
         bot.answer_callback_query(call.id, "Я стал заднеприводным(еду назад)")
+        
     elif call.data == "left":
         robot.left()
         bot.answer_callback_query(call.id, "Налево")
+        
     elif call.data == "right":
         robot.right()
         bot.answer_callback_query(call.id, "Направо")
+        
     elif call.data == "stop":
         robot.stop()
         bot.answer_callback_query(call.id, "Стою")
