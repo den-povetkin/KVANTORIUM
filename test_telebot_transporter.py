@@ -105,6 +105,17 @@ def create_robot_keyboard():
     
     return keyboard
 
+def create_yesno_keyboard():
+    keyboard = types.InlineKeyboardMarkup()
+
+    button_yes = types.InlineKeyboardButton(text="Да", callback_data="yes")
+    button_no = types.InlineKeyboardButton(text="Нет", callback_data="no")
+
+
+    keyboard.add(button_yes, button_no)
+    
+    return keyboard
+
 current_path = {
         'past': ['(0, 0)'],
         'current': ['(0, 0)'],
@@ -319,8 +330,12 @@ def handle_query(call):
             )
             
             bot.answer_callback_query(call.id, "Путь найден!")
+
+
+            
         else:
             bot.answer_callback_query(call.id, "Не удалось найти путь между точками")
+    
             
     elif call.data == "show_points":
         if points_to_visit:

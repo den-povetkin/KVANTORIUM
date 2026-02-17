@@ -17,19 +17,30 @@ my_dict = {'A1': ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x1'],
         'A2': ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x2'],
         'A3': ['0x4f', '0xec', '0x86', '0xbf']
         }
-cid = ''
-while True:
+points_to_visit = []
+uid = ''
+status = True
+while status == True:
     # Проверка наличия карты
     uid = pn532.read_passive_target(timeout=0.5)
     
     if uid is not None:
+        #status = False
         cid=[hex(i) for i in uid]
         cidx=str(cid[0])
         cidy=str(cid[1])
+        
+        row=int(cidx[2])
+        col=int(cidy[2])
+    
+        row, col = int(cidx[2]), int(cidy[2])
+        points_to_visit.append((row, col))
+      
 
         #cid = cid.replace("x", ".")
         print('Текущая координата', cidx[2],cidy[2])
-
+        print(points_to_visit)
+    
         #print("Найдена карта с UID:", [hex(i) for i in uid])
     
 '''    
