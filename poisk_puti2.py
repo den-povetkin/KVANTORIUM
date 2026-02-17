@@ -538,4 +538,4 @@ def main():
     return full_path
 if __name__ == "__main__":
     main()
-Goto(full_path)
+#Goto(full_path)
