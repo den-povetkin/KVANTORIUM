@@ -128,9 +128,9 @@ current_path = {
            
 environment = [
     [0, 0, 0, 0, 0],
-    [0, 1, 1, 1, 0],
+    [0, 1, 1, 0, 0],
     [0, 0, 0, 0, 0],
-    [0, 1, 1, 1, 0],
+    [0, 1, 1, 0, 0],
     [0, 0, 0, 0, 0],
 ]
 
@@ -339,7 +339,7 @@ end_x = 0
 end_y = 0
 point_start = 0
 point_end = 1
-def Goto(full_path):
+def Goto(full_path,rotate,ir):
     global point_start
     global point_end
     points = full_path  # Use the passed parameter
@@ -360,16 +360,48 @@ def Goto(full_path):
         elif rotate == 'лево':
             start_x -= 1
         return start_x, start_y
-        
+    def create_best_rotate(want_rotate,rotate,ir):
+        n_x1 = 0
+        n_x2 = 0
+        local_rotate = rotate
+        local_ir = ir
+        while local_rotate != want_rotate:
+            n_x1 += 1
+            local_ir -= 1
+            if local_ir < 0 :
+                local_ir = 3
+            local_rotate = rt[local_ir]
+        local_rotate = rotate
+        local_ir = ir
+        while local_rotate != want_rotate:
+            n_x2 += 1
+            local_ir += 1
+            if local_ir > 3 :
+                local_ir = 0
+            local_rotate = rt[local_ir]
+        best = min(n_x1, n_x2)
+        for i in range(best):
+            if best == n_x1 :
+                move_l(ir,rotate)
+            if best == n_x2:
+                move_r(ir,rotate)
+        return ir , rotate
     def move_r(ir,rotate):
         print("вправо")
         ir += 1
         if ir > 3 :
             ir = 0
         rotate = rt[ir]
+        print('направление:', rotate)
         return ir, rotate
-        
- 
+    def move_l(ir,rotate):
+        print("влево")
+        ir -= 1
+        if ir < 0 :
+            ir = 3
+        rotate = rt[ir]
+        return ir, rotate        
+
     # основной цикл
     for i in range(len(points)-1):
 
@@ -378,16 +410,19 @@ def Goto(full_path):
         
         end_y = int(points[point_end][0])
         end_x = int(points[point_end][1])
-        
         if start_y != end_y:
             if start_y > end_y:
                 want_rotate = 'верх'
             if start_y < end_y:
                 want_rotate = 'низ'
             if rotate != want_rotate:
-                move_r(ir,rotate)
+                print('Вправо')
+                ir += 1
+                if ir > 3 :
+                    ir = 0
+                rotate = rt[ir]            
             move(start_x, start_y)
-        if start_x != end_x:
+        elif start_x != end_x:
             if start_x < end_x:
                 want_rotate = 'право'
             if start_x > end_x:
@@ -397,7 +432,7 @@ def Goto(full_path):
             move(start_x, start_y)
         point_start += 1
         point_end += 1
-        
+     
 
 
 def search_point():
@@ -545,7 +580,7 @@ def handle_query(call):
         bot.answer_callback_query(call.id, "Состояние сброшено")
         
     elif call.data == "yes":
-        Goto(full_path)
+        Goto(full_path,rotate,ir)
         bot.answer_callback_query(call.id, "Запуск робота")
         
     elif call.data == "no":
