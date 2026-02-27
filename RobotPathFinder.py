@@ -207,6 +207,51 @@ class RobotPathFinder:
         
         return full_path
     
+    def optimize_path(self, path: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
+        """
+        Упрощение пути - удаление промежуточных точек на прямой линии
+        """
+        if len(path) < 3:
+            return path
+        
+        optimized = [path[0]]
+        
+        for i in range(1, len(path) - 1):
+            prev = optimized[-1]
+            curr = path[i]
+            next_pos = path[i + 1]
+            
+            # Проверяем, лежат ли три точки на одной прямой
+            if not self._are_points_collinear(prev, curr, next_pos):
+                optimized.append(curr)
+        
+        optimized.append(path[-1])
+        return optimized
+    
+    def _are_points_collinear(self, p1: Tuple[int, int], 
+                            p2: Tuple[int, int], 
+                            p3: Tuple[int, int]) -> bool:
+        """Проверка, лежат ли три точки на одной прямой"""
+        return (p2[0] - p1[0]) * (p3[1] - p2[1]) == (p3[0] - p2[0]) * (p2[1] - p1[1])
+    
+    def calculate_path_cost(self, path: List[Tuple[int, int]]) -> float:
+        """Вычисление стоимости пути"""
+        if len(path) < 2:
+            return 0
+        
+        total_cost = 0
+        for i in range(len(path) - 1):
+            p1, p2 = path[i], path[i + 1]
+            # Расстояние между точками
+            dr, dc = abs(p2[0] - p1[0]), abs(p2[1] - p1[1])
+            if dr == 1 and dc == 1:
+                total_cost += 1.414  # Диагональное движение
+            else:
+                total_cost += 1.0  # Ортогональное движение
+        
+        return total_cost
+    
+    
     def visualize_path(self, path: List[Tuple[int, int]] = None,
                       points: List[Tuple[int, int]] = None) -> str:
         """

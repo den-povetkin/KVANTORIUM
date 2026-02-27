@@ -515,6 +515,11 @@ def handle_query(call):
         )
 
         if full_path:
+
+            optimized_path = path_finder.optimize_path(full_path)
+            print(f"Длина оптимизированного пути: {len(optimized_path)} шагов")
+
+
             
             # Отправляем текстовое представление пути
             path_text = format_path_for_telegram(full_path)

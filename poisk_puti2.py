@@ -479,7 +479,7 @@ def main():
     )
     if full_path:
   # Оптимизируем путь
- #       optimized_path = path_finder.optimize_path(full_path)
+        optimized_path = path_finder.optimize_path(full_path)
         
         print(f"\n✅ Путь найден!")
         print(f"Длина полного пути: {len(full_path)} шагов")
@@ -538,4 +538,3 @@ def main():
     return full_path
 if __name__ == "__main__":
     main()
-#Goto(full_path)
