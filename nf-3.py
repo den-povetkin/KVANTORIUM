@@ -10,8 +10,10 @@ pn532 = PN532_I2C(i2c, debug=False)
 # Настройка PN532
 pn532.SAM_configuration()
 
+points_to_visit = []
 print("Ожидание NFC метки...")
 print("Поднесите карту к считывателю")
+
 
 while True:
     # Проверка наличия карты
@@ -64,7 +66,7 @@ while True:
                                     text_data += page_data
                                 break
                             text_data += page_data
-                            print(f"Данные страницы {page_index + i}: {page_data.hex()}")
+                          #  print(f"Данные страницы {page_index + i}: {page_data.hex()}")
                         else:
                             break
                     except Exception as e:
@@ -85,5 +87,19 @@ while True:
                 
         except Exception as e:
             print(f"Ошибка: {e}")
+            
+        cid=str(text)
+        row=int(cid[8])
+        col=int(cid[10])
+#        print('test')
+#        print(f'cidx = {cidx}')
+#        print(f'cidy = {cidy}')
         
+#        row, col = int(cidx), int(cidy)
+        points_to_visit.append((row, col))
+          
+#        print('Текущая координата', cidx,cidy)
+        print(points_to_visit)
+
+      
         time.sleep(2)  # Задержка перед следующим чтением

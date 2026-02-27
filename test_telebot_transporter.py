@@ -349,8 +349,11 @@ def Goto(full_path,rotate,ir):
         print("Путь не найден")
         return
     
-    def move(start_x, start_y):
-        print("вперёд")
+    def move():
+        while uid is not None:
+            robot.forward()
+        robot.stop()
+        '''
         if rotate == 'верх':
             start_y -= 1
         elif rotate == 'низ':
@@ -360,6 +363,7 @@ def Goto(full_path,rotate,ir):
         elif rotate == 'лево':
             start_x -= 1
         return start_x, start_y
+        '''
     def create_best_rotate(want_rotate,rotate,ir):
         n_x1 = 0
         n_x2 = 0
@@ -385,22 +389,7 @@ def Goto(full_path,rotate,ir):
                 move_l(ir,rotate)
             if best == n_x2:
                 move_r(ir,rotate)
-        return ir , rotate
-    def move_r(ir,rotate):
-        print("вправо")
-        ir += 1
-        if ir > 3 :
-            ir = 0
-        rotate = rt[ir]
-        print('направление:', rotate)
-        return ir, rotate
-    def move_l(ir,rotate):
-        print("влево")
-        ir -= 1
-        if ir < 0 :
-            ir = 3
-        rotate = rt[ir]
-        return ir, rotate        
+        return ir , rotate     
 
     # основной цикл
     for i in range(len(points)-1):
@@ -415,8 +404,8 @@ def Goto(full_path,rotate,ir):
                 want_rotate = 'верх'
             if start_y < end_y:
                 want_rotate = 'низ'
-            if rotate != want_rotate:
-                print('Вправо')
+            while rotate != want_rotate:
+                robot.right()
                 ir += 1
                 if ir > 3 :
                     ir = 0
@@ -427,8 +416,12 @@ def Goto(full_path,rotate,ir):
                 want_rotate = 'право'
             if start_x > end_x:
                 want_rotate = 'лево'
-            if rotate != want_rotate:
-                move_r(ir,rotate)
+            while rotate != want_rotate:
+                robot.right()
+                ir += 1
+                if ir > 3 :
+                    ir = 0
+                rotate = rt[ir] 
             move(start_x, start_y)
         point_start += 1
         point_end += 1
