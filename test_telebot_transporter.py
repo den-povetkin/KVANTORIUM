@@ -12,7 +12,7 @@ import board
 import busio
 from adafruit_pn532.i2c import PN532_I2C
 import time
-global full_path
+global full_path , optimized_path
 full_path = None
 
 api_key=api_key.api['api_key']
@@ -128,9 +128,9 @@ current_path = {
            
 environment = [
     [0, 0, 0, 0, 0],
-    [0, 1, 1, 0, 0],
     [0, 0, 0, 0, 0],
-    [0, 1, 1, 0, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0],
 ]
 
@@ -339,31 +339,28 @@ end_x = 0
 end_y = 0
 point_start = 0
 point_end = 1
-def Goto(full_path,rotate,ir):
-    global point_start
-    global point_end
-    points = full_path  # Use the passed parameter
-    
-    # Check if full_path is valid
-    if not points:
-        print("Путь не найден")
-        return
-    
-    def move():
-        while uid is not None:
-            robot.forward()
-        robot.stop()
-        '''
-        if rotate == 'верх':
-            start_y -= 1
-        elif rotate == 'низ':
-            start_y += 1
-        elif rotate == 'право':
-            start_x += 1
-        elif rotate == 'лево':
-            start_x -= 1
-        return start_x, start_y
-        '''
+def move(start_x,start_y):
+    print('вперёд')
+    robot.forward()
+    robot.stop()
+    if rotate == 'верх':
+        start_y -= 1
+    elif rotate == 'низ':
+        start_y += 1
+    elif rotate == 'право':
+        start_x += 1
+    elif rotate == 'лево':
+        start_x -= 1
+    return start_x, start_y
+def rotate_robot():
+    global rotate,ir
+    print('right')
+    ir += 1
+    if ir > 3:
+        ir = 0
+    rotate = rt[ir]
+
+'''
     def create_best_rotate(want_rotate,rotate,ir):
         n_x1 = 0
         n_x2 = 0
@@ -384,13 +381,22 @@ def Goto(full_path,rotate,ir):
                 local_ir = 0
             local_rotate = rt[local_ir]
         best = min(n_x1, n_x2)
-        for i in range(best):
-            if best == n_x1 :
+    for i in range(best):
+        if best == n_x1 :
                 move_l(ir,rotate)
-            if best == n_x2:
-                move_r(ir,rotate)
-        return ir , rotate     
-
+        if best == n_x2:
+            move_r(ir,rotate)
+    return ir , rotate
+'''
+def Goto(optimized_path_path,rotate,ir):
+    global point_start
+    global point_end
+    points = optimized_path  # Use the passed parameter
+    
+    # Check if full_path is valid
+    if not points:
+        print("Путь не найден")
+        return
     # основной цикл
     for i in range(len(points)-1):
 
@@ -405,11 +411,12 @@ def Goto(full_path,rotate,ir):
             if start_y < end_y:
                 want_rotate = 'низ'
             while rotate != want_rotate:
-                robot.right()
+                print('right')
                 ir += 1
-                if ir > 3 :
+                if ir > 3:
                     ir = 0
-                rotate = rt[ir]            
+                rotate = rt[ir]
+                robot.right()
             move(start_x, start_y)
         elif start_x != end_x:
             if start_x < end_x:
@@ -417,17 +424,16 @@ def Goto(full_path,rotate,ir):
             if start_x > end_x:
                 want_rotate = 'лево'
             while rotate != want_rotate:
-                robot.right()
+                print('right')
                 ir += 1
-                if ir > 3 :
+                if ir > 3:
                     ir = 0
-                rotate = rt[ir] 
+                rotate = rt[ir]
+                robot.right()
             move(start_x, start_y)
         point_start += 1
         point_end += 1
-     
-
-
+        
 def search_point():
     
     print("Ожидание NFC метки...")
@@ -459,7 +465,7 @@ def start_welcome(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_query(call):
-    global points_to_visit
+    global points_to_visit,optimized_path
         
     if call.data == "add_point":
         bot.edit_message_text(
@@ -578,7 +584,7 @@ def handle_query(call):
         bot.answer_callback_query(call.id, "Состояние сброшено")
         
     elif call.data == "yes":
-        Goto(full_path,rotate,ir)
+        Goto(optimized_path,rotate,ir)
         bot.answer_callback_query(call.id, "Запуск робота")
         
     elif call.data == "no":
