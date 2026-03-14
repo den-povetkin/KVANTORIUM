@@ -1,0 +1,2 @@
+speed_rotate: 0.57
+speed_move: 1 
