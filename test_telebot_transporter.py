@@ -6,8 +6,6 @@ from gpiozero import Motor
 from time import sleep
 from RobotPathFinder import RobotPathFinder
 
-from time import sleep
-
 import board
 import busio
 from adafruit_pn532.i2c import PN532_I2C
@@ -17,7 +15,7 @@ full_path = None
 
 api_key=api_key.api['api_key']
 bot=telebot.TeleBot(api_key)
-
+sleep_time = 0.57
 #ADMIN = 19907153
 ADMIN = 0
 
@@ -26,10 +24,13 @@ robot = Robot(left=Motor(23, 24), right=Motor(27, 22))
 # Инициализация I2C
 i2c = busio.I2C(board.SCL, board.SDA)
 pn532 = PN532_I2C(i2c, debug=False)
-
+speeds = []
 # Настройка PN532
 pn532.SAM_configuration()
-
+with open('robot_speed.txt', 'r' , encoding = 'utf-8') as file:
+    for line in file:
+        data = line.split(' ')
+        speeds.append(float(data[1]))
 @bot.message_handler(commands=['id'])
 def send_id(message: types.Message):
     # Отправка id
@@ -73,10 +74,9 @@ def func(message):
         
     elif message.text == "Калибровка":
         bot.send_message(message.chat.id, text="Привет тут будем калибровать шаг робота")
-        #bot.send_message(message.chat.id, text="Введите шаг робота")
-        #bot.register_next_step_handler(message,Step)
-
-
+        bot.send_message(message.chat.id, text="Введите шаг робота")
+        bot.register_next_step_handler(message,calibrovca)
+        
     elif message.text == "Ручное управление":
         bot.send_message(message.chat.id, text="Привет тут будет ручное управление")
         bot.reply_to(message, "Привет! Я робот-Пико. Используй кнопки ниже для управления.",
@@ -85,7 +85,53 @@ def func(message):
 
     else:
         bot.send_message(message.chat.id, text="На такую комманду я не запрограммировал..")
-
+'''
+def create_edit_keyboard():
+    keyboard = types.InlineKeyboardMarkup()
+            
+    btn_r = types.InlineKeyboardButton(text="поворот", callback_data="r")
+    btn_m = types.InlineKeyboardButton(text="скорость", callback_data="m")
+    bot.register_next_step_handler(,calibrovca)
+    keyboard.add(btn_r,btn_m)
+    return keyboard
+'''
+@bot.message_handler(content_types=['text'])
+def calibrovca(message):
+    global sleep_time , calibrovca_1 , speeds
+    robot.right()
+    sleep(float(message.text))
+    calibrovca_1 = float(message.text)
+    robot.stop()
+    bot.send_message(message.chat.id, text="Подтвердить изменения?(да\нет)")
+    bot.register_next_step_handler(message,edit_value)
+    
+def edit_value(message):
+    global speeds
+    m_s = message.text
+    if m_s.lower() == 'да':
+        with open('robot_speed.txt', 'w' , encoding = 'utf-8') as file:
+            data = file
+            data.writelines('speed_rotate: '+ str(calibrovca_1) + '\n' + 'speed_move: '+ str(speeds[1]) + ' ')
+            '''
+            if rotate_s == speed:
+                data.writelines('speed_rotate: '+ str(rotate_s) + '\n' + 'speed_move: '+ str(speeds[1])+ ' ')
+            '''
+        with open('robot_speed.txt', 'r' , encoding = 'utf-8') as file:
+            speeds = []
+            for line in file:
+                data = line.split(' ')
+                speeds.append(float(data[1]))
+        print('скороть поворота: ' + str(speeds[0]))
+        print('скороть движения: ' + str(speeds[1]))
+        bot.send_message(message.chat.id, text='Откалиброван')
+                
+        return speeds
+    if m_s.lower() == 'нет':
+        bot.send_message(message.chat.id, text='Ну не в этот раз')
+    else:
+        bot.send_message(message.chat.id, text='по русски говори')
+        bot.send_message(message.chat.id, text="Подтвердить изменения?(да\нет)")
+        bot.register_next_step_handler(message,edit_value)
 
 def long_text(message): #! отправка длинного сообщения через текстовый файл 
     if message.text == "О нас":
@@ -106,7 +152,7 @@ def create_robot_keyboard():
     keyboard.add(button_forward, button_backward)
     keyboard.add(button_left, button_right)
     keyboard.add(button_stop)
-    
+
     return keyboard
 
 def create_yesno_keyboard():
@@ -340,8 +386,9 @@ end_y = 0
 point_start = 0
 point_end = 1
 def move(start_x,start_y):
-    print('вперёд')
     robot.forward()
+    print('вперёд')
+    sleep(speeds[1])
     robot.stop()
     if rotate == 'верх':
         start_y -= 1
@@ -355,6 +402,7 @@ def move(start_x,start_y):
 def rotate_robot():
     global rotate,ir
     print('right')
+    robot.right()
     ir += 1
     if ir > 3:
         ir = 0
@@ -391,6 +439,7 @@ def rotate_robot():
 def Goto(optimized_path_path,rotate,ir):
     global point_start
     global point_end
+    global sleep_time
     points = optimized_path  # Use the passed parameter
     
     # Check if full_path is valid
@@ -411,12 +460,14 @@ def Goto(optimized_path_path,rotate,ir):
             if start_y < end_y:
                 want_rotate = 'низ'
             while rotate != want_rotate:
+                robot.right()
+                sleep(speeds[0])
+                robot.stop()
                 print('right')
                 ir += 1
                 if ir > 3:
                     ir = 0
                 rotate = rt[ir]
-                robot.right()
             move(start_x, start_y)
         elif start_x != end_x:
             if start_x < end_x:
@@ -424,16 +475,20 @@ def Goto(optimized_path_path,rotate,ir):
             if start_x > end_x:
                 want_rotate = 'лево'
             while rotate != want_rotate:
+                robot.right()
+                sleep(speeds[0])
+                robot.stop()
                 print('right')
                 ir += 1
                 if ir > 3:
                     ir = 0
                 rotate = rt[ir]
-                robot.right()
             move(start_x, start_y)
         point_start += 1
         point_end += 1
-        
+        sleep(speeds[1])
+    point_start = 0
+    point_end = 1
 def search_point():
     
     print("Ожидание NFC метки...")
@@ -465,7 +520,7 @@ def start_welcome(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_query(call):
-    global points_to_visit,optimized_path
+    global points_to_visit,optimized_path,sleep_time
         
     if call.data == "add_point":
         bot.edit_message_text(
@@ -610,6 +665,11 @@ def handle_query(call):
     elif call.data == "stop":
         robot.stop()
         bot.answer_callback_query(call.id, "Стою")
+    elif call.data == "calibrovca_yes":
+        sleep_time = calibrovca_1
+        bot.answer_callback_query(call.id ,'поворот откалиброван')
+    elif call.data == "calibrovca_no":
+        bot.answer_callback_query(call.id ,'выполните калибровку снова')
 
 bot.infinity_polling()
 
