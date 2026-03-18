@@ -30,6 +30,8 @@ def StepBackward(x):
     robot.stop()
 
 #StepBackward(0.9)
-for i in range(36):
+robot.left()
+'''for i in range(36):
     Step(2)
     StepRight(0.1)
+'''

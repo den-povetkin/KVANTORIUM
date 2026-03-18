@@ -69,13 +69,12 @@ def func(message):
         
     elif message.text == "Показать карту":
         bot.send_message(message.chat.id, text="Привет тут будем Показать карту")
-        search_point()
+        #search_point()
+        gogo()
 
         
     elif message.text == "Калибровка":
-        bot.send_message(message.chat.id, text="Привет тут будем калибровать шаг робота")
-        bot.send_message(message.chat.id, text="Введите шаг робота")
-        bot.register_next_step_handler(message,calibrovca)
+        bot.send_message(message.chat.id, text="Привет тут будем калибровать шаг робота",reply_markup= create_speed_type_keyboard())
         
     elif message.text == "Ручное управление":
         bot.send_message(message.chat.id, text="Привет тут будет ручное управление")
@@ -102,37 +101,44 @@ def calibrovca(message):
     sleep(float(message.text))
     calibrovca_1 = float(message.text)
     robot.stop()
-    bot.send_message(message.chat.id, text="Подтвердить изменения?(да\нет)")
+    bot.send_message(message.chat.id, text="Подтвердить изменения?(да\нет)",)
     bot.register_next_step_handler(message,edit_value)
     
-def edit_value(message):
+def edit_value():
     global speeds
-    m_s = message.text
-    if m_s.lower() == 'да':
-        with open('robot_speed.txt', 'w' , encoding = 'utf-8') as file:
-            data = file
-            data.writelines('speed_rotate: '+ str(calibrovca_1) + '\n' + 'speed_move: '+ str(speeds[1]) + ' ')
-            '''
-            if rotate_s == speed:
-                data.writelines('speed_rotate: '+ str(rotate_s) + '\n' + 'speed_move: '+ str(speeds[1])+ ' ')
-            '''
-        with open('robot_speed.txt', 'r' , encoding = 'utf-8') as file:
-            speeds = []
-            for line in file:
-                data = line.split(' ')
-                speeds.append(float(data[1]))
-        print('скороть поворота: ' + str(speeds[0]))
-        print('скороть движения: ' + str(speeds[1]))
-        bot.send_message(message.chat.id, text='Откалиброван')
+    with open('robot_speed.txt', 'w' , encoding = 'utf-8') as file:
+        data = file
+        data.writelines('speed_rotate: '+ str(calibrovca_1) + '\n' + 'speed_move: '+ str(speeds[1]) + ' ')
+    with open('robot_speed.txt', 'r' , encoding = 'utf-8') as file:
+        speeds = []
+        for line in file:
+            data = line.split(' ')
+            speeds.append(float(data[1]))
+    print('скороть поворота: ' + str(speeds[0]))
+    print('скороть движения: ' + str(speeds[1]))
+    bot.send_message(message.chat.id, text='Откалиброван')
                 
-        return speeds
-    if m_s.lower() == 'нет':
-        bot.send_message(message.chat.id, text='Ну не в этот раз')
-    else:
-        bot.send_message(message.chat.id, text='по русски говори')
-        bot.send_message(message.chat.id, text="Подтвердить изменения?(да\нет)")
-        bot.register_next_step_handler(message,edit_value)
+    return speeds
 
+        
+def create_speed_type_keyboard():
+    keyboard = types.InlineKeyboardMarkup()
+    
+    btn_rotate = types.InlineKeyboardButton(text='поворот' , callback_data='rotating')
+    btn_move = types.InlineKeyboardButton(text='движение' , callback_data='moving')
+    
+    keyboard.add(btn_rotate,btn_move)
+    
+    return keyboard
+def create_confim_changes_keyboard():
+    keyboard = types.InlineKeyboardMarkup()
+    
+    btn_rotate = types.InlineKeyboardButton(text='да' , callback_data='cc')
+    btn_move = types.InlineKeyboardButton(text='нет' , callback_data='ncc')
+    
+    keyboard.add(btn_rotate,btn_move)
+    
+    return keyboard
 def long_text(message): #! отправка длинного сообщения через текстовый файл 
     if message.text == "О нас":
         with open('hi.txt', "r", encoding = "UTF-8") as file:
@@ -260,7 +266,7 @@ def visualize_path_for_telegram(path, points=None):
 def first_point():
     text = ''
     status = True
-
+    global uid
     # Инициализация I2C
     i2c = busio.I2C(board.SCL, board.SDA)
     pn532 = PN532_I2C(i2c, debug=False)
@@ -352,28 +358,101 @@ def first_point():
             points_to_visit.append((row, col))
             print(points_to_visit)
             
-
-'''
-    print("Ожидание NFC метки...")
-    print("Поднесите карту к считывателю")
-    uid = ''
+def gogo():
+    text = ''
     status = True
+    global uid
+    # Инициализация I2C
+    i2c = busio.I2C(board.SCL, board.SDA)
+    pn532 = PN532_I2C(i2c, debug=False)
+
+    # Настройка PN532
+    pn532.SAM_configuration()
+
+    print("Ожидание NFC метки...!!!")
+#    print("Поднесите карту к считывателю")
+
     while status == True:
         # Проверка наличия карты
         uid = pn532.read_passive_target(timeout=0.5)
         
         if uid is not None:
-            status = False
-            cid=[hex(i) for i in uid]
-            cidx=str(cid[0])
-            cidy=str(cid[1])
-        
-            row, col = int(cidx[2]), int(cidy[2])
-            points_to_visit.append((row, col))
-          
-            print('Текущая координата', cidx[2],cidy[2])
-            print(points_to_visit)
-'''    
+            print("Найдена карта с UID:", [hex(i) for i in uid])
+            #status = False
+
+            
+            # Обработка разных типов карт
+            try:
+                # Для Mifare Classic
+                if len(uid) == 4:
+                    print("Тип: Mifare Classic")
+                    print("Чтение блока данных...")
+                    
+                    # Аутентификация и чтение блока
+                    key = b'\xFF\xFF\xFF\xFF\xFF\xFF'  # ключ по умолчанию
+                    authenticated = pn532.mifare_classic_authenticate_block(
+                        uid, 4, pn532.MIFARE_CMD_AUTH_A, key)
+                    
+                    if authenticated:
+                        data = pn532.mifare_classic_read_block(4)
+                        print(f"Данные блока 4: {data.hex()}")
+                        
+                        # Пример записи данных
+                        # new_data = b'Hello Raspberry!'
+                        # if len(new_data) <= 16:
+                        #     pn532.mifare_classic_write_block(4, new_data.ljust(16, b'\x00'))
+                        
+                # Для NTAG
+                elif len(uid) == 7:
+                    #print("Тип: NTAG")
+                    # Чтение текста из нескольких страниц NTAG
+                    text_data = b''
+                    page_index = 4  # Начинаем чтение с 4-й страницы
+                    
+                    # Читаем несколько страниц для получения полного текста
+                    for i in range(8):  # Читаем 8 страниц (32 байта)
+                        try:
+                            page_data = pn532.ntag2xx_read_block(page_index + i)
+                            if page_data is not None:
+                                # Проверяем, содержит ли страница данные окончания текста
+                                if b'\x00\x00' in page_data or page_data == b'\x00' * 4:
+                                    # Добавляем данные до первого нулевого байта
+                                    for j, byte in enumerate(page_data):
+                                        if byte == 0:
+                                            text_data += page_data[:j]
+                                            break
+                                    else:
+                                        text_data += page_data
+                                    break
+                                text_data += page_data
+                              #  print(f"Данные страницы {page_index + i}: {page_data.hex()}")
+                            else:
+                                break
+                        except Exception as e:
+                            print(f"Ошибка чтения страницы {page_index + i}: {e}")
+                            break
+                    
+                    # Пытаемся декодировать текст
+                    try:
+                        # Удаляем пустые байты в конце и декодируем
+                        text = text_data.rstrip(b'\x00').decode('utf-8', errors='ignore')
+                        if text:
+                            print(f"Текст с метки: {text}")
+                        else:
+                            print(f"Данные в виде hex: {text_data.hex()}")
+                    except Exception as e:
+                        print(f"Ошибка декодирования текста: {e}")
+                        print(f"Данные в виде hex: {text_data.hex()}")
+                    
+            except Exception as e:
+                print(f"Ошибка: {e}")
+            
+            cid=str(text)
+            row=str(cid[8])
+            col=str(cid[10])
+            uid=row + "." + col
+            print(f"UID:{uid}")
+            return uid
 
 ir = 1
 rt = ['верх','право','низ','лево']
@@ -385,10 +464,11 @@ end_x = 0
 end_y = 0
 point_start = 0
 point_end = 1
-def move(start_x,start_y):
-    robot.forward()
+def move(start_x,start_y,uid,points,point_end):
     print('вперёд')
-    sleep(speeds[1])
+    while uid != points[point_end]:
+        gogo()
+        robot.forward()
     robot.stop()
     if rotate == 'верх':
         start_y -= 1
@@ -436,18 +516,18 @@ def rotate_robot():
             move_r(ir,rotate)
     return ir , rotate
 '''
-def Goto(optimized_path_path,rotate,ir):
+def Goto(optimized_path_path,rotate,ir,uid):
     global point_start
     global point_end
     global sleep_time
     points = optimized_path  # Use the passed parameter
-    
+    print(points)
     # Check if full_path is valid
     if not points:
         print("Путь не найден")
         return
     # основной цикл
-    for i in range(len(points)-1):
+    while uid != optimized_path[len(optimized_path)-1]:
 
         start_y = int(points[point_start][0])
         start_x = int(points[point_start][1])
@@ -468,7 +548,7 @@ def Goto(optimized_path_path,rotate,ir):
                 if ir > 3:
                     ir = 0
                 rotate = rt[ir]
-            move(start_x, start_y)
+            move(start_x, start_y,uid,points,point_end)
         elif start_x != end_x:
             if start_x < end_x:
                 want_rotate = 'право'
@@ -483,7 +563,7 @@ def Goto(optimized_path_path,rotate,ir):
                 if ir > 3:
                     ir = 0
                 rotate = rt[ir]
-            move(start_x, start_y)
+            move(start_x, start_y,uid,points,point_end)
         point_start += 1
         point_end += 1
         sleep(speeds[1])
@@ -639,7 +719,7 @@ def handle_query(call):
         bot.answer_callback_query(call.id, "Состояние сброшено")
         
     elif call.data == "yes":
-        Goto(optimized_path,rotate,ir)
+        Goto(optimized_path,rotate,ir,uid)
         bot.answer_callback_query(call.id, "Запуск робота")
         
     elif call.data == "no":
@@ -664,7 +744,7 @@ def handle_query(call):
         
     elif call.data == "stop":
         robot.stop()
-        bot.answer_callback_query(call.id, "Стою")
+        bot.answer_callback_query(call.id, "Стою") 
     elif call.data == "calibrovca_yes":
         sleep_time = calibrovca_1
         bot.answer_callback_query(call.id ,'поворот откалиброван')
