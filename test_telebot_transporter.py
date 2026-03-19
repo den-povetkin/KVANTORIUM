@@ -10,7 +10,7 @@ import board
 import busio
 from adafruit_pn532.i2c import PN532_I2C
 import time
-global full_path , optimized_path
+global full_path , optimized_path, current_path, uid
 full_path = None
 
 api_key=api_key.api['api_key']
@@ -357,11 +357,12 @@ def first_point():
             col=int(cid[10])
             points_to_visit.append((row, col))
             print(points_to_visit)
+
+current_path = []
             
 def gogo():
     text = ''
     status = True
-    global uid
     # Инициализация I2C
     i2c = busio.I2C(board.SCL, board.SDA)
     pn532 = PN532_I2C(i2c, debug=False)
@@ -369,16 +370,16 @@ def gogo():
     # Настройка PN532
     pn532.SAM_configuration()
 
-    print("Ожидание NFC метки...!!!")
+    print("Ожидание NFC метки...")
 #    print("Поднесите карту к считывателю")
 
     while status == True:
         # Проверка наличия карты
-        uid = pn532.read_passive_target(timeout=0.5)
+        uid = pn532.read_passive_target(timeout=1.5)
         
         if uid is not None:
             print("Найдена карта с UID:", [hex(i) for i in uid])
-            #status = False
+            status = False
 
             
             # Обработка разных типов карт
@@ -448,12 +449,17 @@ def gogo():
                 print(f"Ошибка: {e}")
             
             cid=str(text)
-            row=str(cid[8])
-            col=str(cid[10])
-            uid=row + "." + col
-            print(f"UID:{uid}")
-            return uid
+            row=int(cid[8])
+            col=int(cid[10])
+            new_element=(row,col) 
+            if new_element not in current_path:
+                current_path.append(new_element)
 
+            #current_path.append((row, col))
+            print(current_path)
+            #status = True
+
+        
 ir = 1
 rt = ['верх','право','низ','лево']
 rotate = rt[ir]
@@ -464,13 +470,25 @@ end_x = 0
 end_y = 0
 point_start = 0
 point_end = 1
-def move(start_x,start_y,uid,points,point_end):
+
+def move():
     print('вперёд')
-    while uid != points[point_end]:
-        gogo()
+    robot.forward()
+    sleep(1)
+    gogo()
+    all_in = False
+           
+    print(f'OP: {optimized_path}')
+    print(f'CP: {current_path}')
+
+    all_in = any(item in optimized_path for item in current_path)
+    print(all_in)  # Вывод: True
+    if all_in == True:
+        robot.stop()
+    else:
         robot.forward()
-    robot.stop()
-    if rotate == 'верх':
+#        robot.stop()
+'''    if rotate == 'верх':
         start_y -= 1
     elif rotate == 'низ':
         start_y += 1
@@ -479,6 +497,7 @@ def move(start_x,start_y,uid,points,point_end):
     elif rotate == 'лево':
         start_x -= 1
     return start_x, start_y
+'''
 def rotate_robot():
     global rotate,ir
     print('right')
@@ -487,7 +506,6 @@ def rotate_robot():
     if ir > 3:
         ir = 0
     rotate = rt[ir]
-
 '''
     def create_best_rotate(want_rotate,rotate,ir):
         n_x1 = 0
@@ -516,29 +534,60 @@ def rotate_robot():
             move_r(ir,rotate)
     return ir , rotate
 '''
-def Goto(optimized_path_path,rotate,ir,uid):
+def Goto(optimized_path,rotate,ir,uid):
     global point_start
     global point_end
     global sleep_time
     points = optimized_path  # Use the passed parameter
     print(points)
+    
+    point_start=optimized_path[0]
+    print(f'point_start: {point_start}')
+    
+    point_end=optimized_path[len(optimized_path)-1]
+    print(f'point_end: {point_end}')
+    
     # Check if full_path is valid
     if not points:
         print("Путь не найден")
         return
     # основной цикл
-    while uid != optimized_path[len(optimized_path)-1]:
+    robot.forward()
+    sleep(1)
+    gogo()
+    all_in = False
+           
+    print(f'OP: {optimized_path}')
+    print(f'CP: {current_path}')
 
-        start_y = int(points[point_start][0])
-        start_x = int(points[point_start][1])
+    all_in = any(item in optimized_path for item in current_path)
+    print(all_in)  # Вывод: True
+    if all_in == True:
+        robot.stop()
+    
+    else:
+        robot.forward()
+    
+'''
+        start_y = int(point_start[0])
+        start_x = int(point_start[1])
         
-        end_y = int(points[point_end][0])
-        end_x = int(points[point_end][1])
+        uid_y = int(curent_path[0])
+        uid_x = int(curent_path[1])
+        
+        
+        end_y = int(point_end[0])
+        end_x = int(point_end[1])
         if start_y != end_y:
-            if start_y > end_y:
+            if start_y > uid_y:
                 want_rotate = 'верх'
-            if start_y < end_y:
+            if start_y < uid_y:
                 want_rotate = 'низ'
+                
+                
+                
+'''                
+'''                
             while rotate != want_rotate:
                 robot.right()
                 sleep(speeds[0])
@@ -564,31 +613,11 @@ def Goto(optimized_path_path,rotate,ir,uid):
                     ir = 0
                 rotate = rt[ir]
             move(start_x, start_y,uid,points,point_end)
-        point_start += 1
-        point_end += 1
         sleep(speeds[1])
-    point_start = 0
-    point_end = 1
-def search_point():
+    #point_start = 0
+    #point_end = 1
     
-    print("Ожидание NFC метки...")
-    status = True
-    while status == True:
-        # Проверка наличия карты
-        uid = pn532.read_passive_target(timeout=0.5)
-        
-        if uid is not None:
-            status = False
-            cid=[hex(i) for i in uid]
-            cidx=str(cid[0])
-            cidy=str(cid[1])
-            
-            row=int(cidx[2])
-            col=int(cidy[2])
-                    
-            print(f'Текущая координата {row},{col}')
-    return row, col
-            
+ '''           
 #@bot.message_handler(commands=['start'])
 def start_welcome(message):
     global points_to_visit
