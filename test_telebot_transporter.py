@@ -461,7 +461,7 @@ def gogo():
 
         
 ir = 1
-rt = ['верх','право','низ','лево']
+rt = ['up','ri','dw','lf']
 rotate = rt[ir]
 want_rotate = ''
 start_x = 0
@@ -534,7 +534,11 @@ def rotate_robot():
             move_r(ir,rotate)
     return ir , rotate
 '''
+<<<<<<< HEAD
+def Goto(optimized_path,rotate,ir):
+=======
 def Goto(optimized_path,rotate,ir,uid):
+>>>>>>> 43be2fbceea0840ea51eba19a36002e02edcf254
     global point_start
     global point_end
     global sleep_time
@@ -559,6 +563,45 @@ def Goto(optimized_path,rotate,ir,uid):
            
     print(f'OP: {optimized_path}')
     print(f'CP: {current_path}')
+<<<<<<< HEAD
+    
+    for item in optimized_path:
+        all_in = any(item in optimized_path for item in current_path)
+        print('вперёд')
+        if all_in == True:
+            robot.stop()
+        else:
+            robot.forward()
+        point_start_x = item[0]
+        point_start_y = item[1]
+        if optimized_path.index(item) + 1 != len(optimized_path):
+            point_end_x = optimized_path[optimized_path.index(item) + 1][0]
+            point_end_y = optimized_path[optimized_path.index(item) + 1][1]
+            if point_start_x < point_end_x:
+                need_rotate = 'up'
+            if point_start_x > point_end_x:
+                need_rotate = 'd'
+            if point_start_y < point_start_y:
+                need_rotate = 'ri'
+            if point_start_y > point_end_y:
+                need_rotate = 'lf'
+            while rotate != need_rotate:
+                robot.right()
+                sleep(speeds[0])
+                robot.stop()
+                print('right')
+                ir += 1
+                if ir > 3:
+                    ir = 0
+                rotate = rt[ir]
+        
+
+    
+'''
+        start_y = int(point_start[0])
+        start_x = int(point_start[1])
+        
+=======
 
     all_in = any(item in optimized_path for item in current_path)
     print(all_in)  # Вывод: True
@@ -572,6 +615,7 @@ def Goto(optimized_path,rotate,ir,uid):
         start_y = int(point_start[0])
         start_x = int(point_start[1])
         
+>>>>>>> 43be2fbceea0840ea51eba19a36002e02edcf254
         uid_y = int(curent_path[0])
         uid_x = int(curent_path[1])
         
