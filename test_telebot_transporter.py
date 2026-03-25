@@ -5,7 +5,9 @@ from pico import Robot
 from gpiozero import Motor
 from time import sleep
 from RobotPathFinder import RobotPathFinder
-
+import pygame 
+from time import sleep
+    #print(f"X: {x:.2f}, Y: {y:.2f}, A: {button_a}")    
 import board
 import busio
 from adafruit_pn532.i2c import PN532_I2C
@@ -27,6 +29,16 @@ pn532 = PN532_I2C(i2c, debug=False)
 speeds = []
 # Настройка PN532
 pn532.SAM_configuration()
+pygame.init()
+pygame.joystick.init()
+
+if pygame.joystick.get_count() == 0:
+    print("Подключите геймпад")
+else:
+    joystick =pygame.joystick.Joystick(0)
+    joystick.init()
+    print("Подключён ",joystick.get_name())
+    
 with open('robot_speed.txt', 'r' , encoding = 'utf-8') as file:
     for line in file:
         data = line.split(' ')
@@ -59,7 +71,7 @@ def start(message):
             bot.send_message(message.chat.id, text="Привет, {0.first_name}! Выбирай что будем делать".format(message.from_user), reply_markup=markup)
 
 @bot.message_handler(content_types=['text'])
-def func(message):
+def func(message):       
     if message.text == "О нас":
         long_text(message)
     
@@ -74,13 +86,13 @@ def func(message):
 
         
     elif message.text == "Калибровка":
-        bot.send_message(message.chat.id, text="Привет тут будем калибровать шаг робота",reply_markup= create_speed_type_keyboard())
+        bot.send_message(message.chat.id, text="Привет тут будем калибровать шаг робота")
+        bot.register_next_step_handler(message,calibrovca)
         
     elif message.text == "Ручное управление":
         bot.send_message(message.chat.id, text="Привет тут будет ручное управление")
         bot.reply_to(message, "Привет! Я робот-Пико. Используй кнопки ниже для управления.",
         reply_markup=create_robot_keyboard())
-
 
     else:
         bot.send_message(message.chat.id, text="На такую комманду я не запрограммировал..")
@@ -104,21 +116,22 @@ def calibrovca(message):
     bot.send_message(message.chat.id, text="Подтвердить изменения?(да\нет)",)
     bot.register_next_step_handler(message,edit_value)
     
-def edit_value():
+def edit_value(message):
     global speeds
-    with open('robot_speed.txt', 'w' , encoding = 'utf-8') as file:
-        data = file
-        data.writelines('speed_rotate: '+ str(calibrovca_1) + '\n' + 'speed_move: '+ str(speeds[1]) + ' ')
-    with open('robot_speed.txt', 'r' , encoding = 'utf-8') as file:
-        speeds = []
-        for line in file:
-            data = line.split(' ')
-            speeds.append(float(data[1]))
-    print('скороть поворота: ' + str(speeds[0]))
-    print('скороть движения: ' + str(speeds[1]))
-    bot.send_message(message.chat.id, text='Откалиброван')
-                
-    return speeds
+    if lower.message.text == 'да':
+        with open('robot_speed.txt', 'w' , encoding = 'utf-8') as file:
+            data = file
+            data.writelines('speed_rotate: '+ str(calibrovca_1) + '\n' + 'speed_move: '+ str(speeds[1]) + ' ')
+        with open('robot_speed.txt', 'r' , encoding = 'utf-8') as file:
+            speeds = []
+            for line in file:
+                data = line.split(' ')
+                speeds.append(float(data[1]))
+        print('скороть поворота: ' + str(speeds[0]))
+        print('скороть движения: ' + str(speeds[1]))
+        bot.send_message(message.chat.id, text='Откалиброван')
+                    
+        return speeds
 
         
 def create_speed_type_keyboard():
@@ -463,7 +476,7 @@ def gogo():
 ir = 1
 rt = ['up','ri','dw','lf']
 rotate = rt[ir]
-want_rotate = ''
+need_rotate = ''
 start_x = 0
 start_y = 0
 end_x = 0
@@ -534,11 +547,7 @@ def rotate_robot():
             move_r(ir,rotate)
     return ir , rotate
 '''
-<<<<<<< HEAD
 def Goto(optimized_path,rotate,ir):
-=======
-def Goto(optimized_path,rotate,ir,uid):
->>>>>>> 43be2fbceea0840ea51eba19a36002e02edcf254
     global point_start
     global point_end
     global sleep_time
@@ -563,7 +572,6 @@ def Goto(optimized_path,rotate,ir,uid):
            
     print(f'OP: {optimized_path}')
     print(f'CP: {current_path}')
-<<<<<<< HEAD
     
     for item in optimized_path:
         all_in = any(item in optimized_path for item in current_path)
@@ -579,11 +587,11 @@ def Goto(optimized_path,rotate,ir,uid):
             point_end_y = optimized_path[optimized_path.index(item) + 1][1]
             if point_start_x < point_end_x:
                 need_rotate = 'up'
-            if point_start_x > point_end_x:
+            elif point_start_x > point_end_x:
                 need_rotate = 'd'
-            if point_start_y < point_start_y:
+            elif point_start_y < point_start_y:
                 need_rotate = 'ri'
-            if point_start_y > point_end_y:
+            elif point_start_y > point_end_y:
                 need_rotate = 'lf'
             while rotate != need_rotate:
                 robot.right()
@@ -601,21 +609,6 @@ def Goto(optimized_path,rotate,ir,uid):
         start_y = int(point_start[0])
         start_x = int(point_start[1])
         
-=======
-
-    all_in = any(item in optimized_path for item in current_path)
-    print(all_in)  # Вывод: True
-    if all_in == True:
-        robot.stop()
-    
-    else:
-        robot.forward()
-    
-'''
-        start_y = int(point_start[0])
-        start_x = int(point_start[1])
-        
->>>>>>> 43be2fbceea0840ea51eba19a36002e02edcf254
         uid_y = int(curent_path[0])
         uid_x = int(curent_path[1])
         
@@ -792,7 +785,7 @@ def handle_query(call):
         bot.answer_callback_query(call.id, "Состояние сброшено")
         
     elif call.data == "yes":
-        Goto(optimized_path,rotate,ir,uid)
+        Goto(optimized_path,rotate,ir)
         bot.answer_callback_query(call.id, "Запуск робота")
         
     elif call.data == "no":
