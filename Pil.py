@@ -33,3 +33,5 @@ def advanced_dithering(input_path, output_path, dot_size=2, contrast=1.0):
 
 # Пример использования расширенной версии
 advanced_dithering("input.jpg", "output_advanced.png", dot_size=3, contrast=1.5)
+
+print('привет')
