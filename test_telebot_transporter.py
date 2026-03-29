@@ -593,7 +593,10 @@ def Goto(optimized_path,rotate,ir):
         if optimized_path.index(item) + 1 != len(optimized_path):
             point_end_x = optimized_path[optimized_path.index(item) + 1][0]
             point_end_y = optimized_path[optimized_path.index(item) + 1][1]
-            robot.right()
+            if point_start_x < point_end_x or point_start_y > point_end_y:
+                robot.right()
+            if point_start_x > point_end_x or point_start_y > point_end_y:
+                robot.left()
             sleep(speeds[0])
             robot.stop()
         '''
@@ -601,7 +604,7 @@ def Goto(optimized_path,rotate,ir):
                 need_rotate = 'up'
             elif point_start_x > point_end_x:
                 need_rotate = 'd'
-            elif point_start_y < point_start_y:
+            elif point_start_y < point_end_y:
                 need_rotate = 'ri'
             elif point_start_y > point_end_y:
                 need_rotate = 'lf'
