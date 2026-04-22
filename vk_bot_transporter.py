@@ -20,8 +20,8 @@ points_to_visit = []
 speeds = []
 
 # Конфигурация VK
-VK_TOKEN = "YOUR_VK_GROUP_TOKEN"  # Токен сообщества VK
-GROUP_ID = 123456  # ID вашего сообщества
+VK_TOKEN = "vk1.a.F7wi9XJ4soUU0vLPzJ0t9XzKtWIvKOx80nzL-CLGObUAtXobb4Uwx4iWXTjFl-pSnSqxL-he0vZUy1tkq2Y8pMu-N0QrLvTQGC1G2PZCxchnoSLCxXgGh0Fco1UaMhsZVI4pu2dz5z7mfp79Cdbb7N7csg4SoCUyCzW5GFc6f8sx9QabKsm_BA-aHMgQOIXdWxMTQA1dhtokB-4xenK-XA"  # Токен сообщества VK
+GROUP_ID = 237875424  # ID вашего сообщества
 
 # Инициализация VK
 vk_session = vk_api.VkApi(token=VK_TOKEN)
@@ -279,6 +279,14 @@ def format_path_for_vk(path):
 def handle_message(user_id, text):
     """Обработка текстовых сообщений"""
     global points_to_visit, optimized_path, current_path
+    
+    # Приводим текст к нижнему регистру для универсальности
+    text_lower = text.lower()
+    
+    # Обработка команд старта
+    if text_lower in ["старт", "начать", "start", "/start", "привет"]:
+        send_message(user_id, "🤖 Добро пожаловать в бот управления транспортером!\nВыберите действие:", create_main_keyboard())
+        return
     
     if text == "О нас":
         long_text(user_id)
