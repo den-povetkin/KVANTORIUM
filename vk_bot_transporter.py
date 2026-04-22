@@ -288,7 +288,7 @@ def handle_message(user_id, text):
         send_message(user_id, "🤖 Добро пожаловать в бот управления транспортером!\nВыберите действие:", create_main_keyboard())
         return
     
-    if text == "О нас":
+    elif text == "О нас":
         long_text(user_id)
     
     elif text == "Задать маршрут":
