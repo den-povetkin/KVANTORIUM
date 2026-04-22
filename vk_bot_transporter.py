@@ -133,7 +133,7 @@ def long_text(user_id):
     except FileNotFoundError:
         send_message(user_id, "Информация о нас временно недоступна")
 
-def first_point():
+def first_point(user_id):
     """Чтение первой NFC метки"""
     global uid, points_to_visit
     
