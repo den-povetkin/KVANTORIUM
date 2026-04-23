@@ -124,15 +124,6 @@ def create_confirmation_keyboard():
     keyboard.add_button("❌ Нет", color=VkKeyboardColor.NEGATIVE)
     return keyboard.get_keyboard()
 
-def create_point_input_keyboard():
-    """Создание клавиатуры выбора способа ввода точки"""
-    keyboard = VkKeyboard(one_time=False)
-    keyboard.add_button("📱 Сканировать NFC", color=VkKeyboardColor.PRIMARY)
-    keyboard.add_button("⌨️ Ввести вручную", color=VkKeyboardColor.SECONDARY)
-    keyboard.add_line()
-    keyboard.add_button("🔙 Назад", color=VkKeyboardColor.SECONDARY)
-    return keyboard.get_keyboard()
-
 def long_text(user_id):
     """Отправка длинного сообщения"""
     try:
@@ -142,11 +133,11 @@ def long_text(user_id):
     except FileNotFoundError:
         send_message(user_id, "Информация о нас временно недоступна")
 
-def first_point(user_id):
+def first_point():
     """Чтение первой NFC метки"""
     global uid, points_to_visit
     
-    send_message(user_id, "Поднесите NFC метку для добавления точки...")
+    send_message(user_id, "Поднесите NFC метку для первой точки...")
     
     status = True
     while status:
@@ -158,13 +149,13 @@ def first_point(user_id):
                     row = int(text[8])
                     col = int(text[10])
                     points_to_visit.append((row, col))
-                    send_message(user_id, f"✅ Точка ({row}, {col}) добавлена!", create_route_keyboard())
+                    send_message(user_id, f"✅ Точка ({row}, {col}) добавлена!")
                     status = False
                 except (IndexError, ValueError):
-                    send_message(user_id, "❌ Ошибка чтения координат с метки", create_route_keyboard())
+                    send_message(user_id, "❌ Ошибка чтения координат с метки")
                     status = False
             else:
-                send_message(user_id, "❌ Не удалось прочитать данные с метки", create_route_keyboard())
+                send_message(user_id, "❌ Не удалось прочитать данные с метки")
                 status = False
 
 def read_nfc_tag(uid):
@@ -297,14 +288,14 @@ def handle_message(user_id, text):
         send_message(user_id, "🤖 Добро пожаловать в бот управления транспортером!\nВыберите действие:", create_main_keyboard())
         return
     
-    elif text == "О нас":
+    if text == "О нас":
         long_text(user_id)
     
     elif text == "Задать маршрут":
         points_to_visit = []
         current_path = []
         send_message(user_id, "🗺 Построение маршрута", create_route_keyboard())
-        send_message(user_id, "Выберите способ добавления первой точки:", create_point_input_keyboard())
+        threading.Thread(target=first_point, args=(user_id,)).start()
     
     elif text == "Показать карту":
         send_message(user_id, "🔄 Загрузка карты...")
@@ -348,15 +339,8 @@ def handle_message(user_id, text):
     
     # Кнопки построения маршрута
     elif text == "➕ Добавить точку":
-        send_message(user_id, "Выберите способ добавления точки:", create_point_input_keyboard())
-    
-    elif text == "📱 Сканировать NFC":
         send_message(user_id, "🔄 Поднесите NFC метку для добавления точки...")
         threading.Thread(target=first_point, args=(user_id,)).start()
-    
-    elif text == "⌨️ Ввести вручную":
-        send_message(user_id, "Введите координаты точки в формате 'x y' (например, '2 3'):")
-        waiting_for_coordinates[user_id] = True
     
     elif text == "🗺 Найти путь":
         if len(points_to_visit) < 2:
@@ -424,24 +408,6 @@ def main():
                         waiting_for_calibration[user_id] = False
                     except ValueError:
                         send_message(user_id, "❌ Пожалуйста, введите число")
-                    continue
-                
-                # Проверяем ожидание ручного ввода координат
-                if waiting_for_coordinates.get(user_id):
-                    try:
-                        # Парсим координаты: поддерживаем форматы "x y", "(x, y)", "x,y"
-                        text_clean = text.strip().replace('(', '').replace(')', '').replace(',', ' ')
-                        parts = text_clean.split()
-                        if len(parts) != 2:
-                            raise ValueError
-                        x = int(parts[0])
-                        y = int(parts[1])
-                        global points_to_visit
-                        points_to_visit.append((x, y))
-                        send_message(user_id, f"✅ Точка ({x}, {y}) добавлена вручную!", create_route_keyboard())
-                        waiting_for_coordinates[user_id] = False
-                    except ValueError:
-                        send_message(user_id, "❌ Неверный формат. Введите координаты в формате 'x y' (например, '2 3'):")
                     continue
                 
                 # Обрабатываем обычное сообщение
