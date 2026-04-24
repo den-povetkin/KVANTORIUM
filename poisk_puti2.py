@@ -2,7 +2,7 @@ from typing import List, Tuple, Optional, Dict, Set
 from collections import deque, defaultdict
 import heapq
 from enum import Enum
-from map_i import *
+
 
 class Direction(Enum):
     """
@@ -435,7 +435,6 @@ class RobotPathFinder:
 
 # Пример использования
 def main():
-    global full_path
     """
     Пример использования класса RobotPathFinder
     Демонстрирует поиск пути для робота через несколько точек
@@ -468,7 +467,7 @@ def main():
     )
     
     # Определяем точки для посещения
-    points_to_visit = [(0, 0), (6,5)]
+    points_to_visit = [(0, 0), (9,9)]
     
     print(f"\nТочки для посещения: {points_to_visit}")
     
@@ -477,12 +476,14 @@ def main():
         points=points_to_visit,
         method='astar'
     )
+    
     if full_path:
-  # Оптимизируем путь
-        optimized_path = path_finder.optimize_path(full_path)
+        # Оптимизируем путь
+ #       optimized_path = path_finder.optimize_path(full_path)
         
         print(f"\n✅ Путь найден!")
         print(f"Длина полного пути: {len(full_path)} шагов")
+        
         print("\nПолный путь:")
         for i, pos in enumerate(full_path):
             print(f"  Шаг {i:2d}: {pos}")
@@ -535,6 +536,6 @@ def main():
                 print("❌ Не удалось найти новый путь")
         else:
             print("Среда не изменилась, перепланирование не требуется")
-    return full_path
+
 if __name__ == "__main__":
     main()

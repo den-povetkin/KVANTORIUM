@@ -247,7 +247,7 @@ def goto_route(user_id):
         send_message(user_id, "❌ Маршрут не найден")
         return
     
-    send_message(user_id, "🚀 Начинаю движение по маршруту...")
+    send_message(user_id, "🚀 Начинаю движение по маршруту..." , create_route_keyboard())
     
     for item in optimized_path:
         robot.forward()
@@ -391,6 +391,7 @@ def handle_message(user_id, text):
     # Подтверждение
     elif text == "✅ Да":
         threading.Thread(target=goto_route, args=(user_id,)).start()
+
     
     elif text == "❌ Нет":
         send_message(user_id, "❌ Запуск отменен", create_route_keyboard())

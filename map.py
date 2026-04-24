@@ -94,4 +94,22 @@ def Goto(points):
         point_end += 1
 point = ['0.1','0.2','0,3','0,4','1.4','2,4','3,4','4,4','4,5','4,6','4,7']
 full_path = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8), (0, 9), (1, 9), (2, 9), (3, 9), (4, 9), (5, 9), (6, 9), (7, 9), (8, 9), (9, 9)]
-Goto(full_path)
+Goto(full_path)rotate:
+            print('\\\\')
+            move_rotate()
+            print('навправление',rotate)
+            print('\\\\')
+        move()
+    while start_x != end_x:
+        if start_x < end_x:
+            want_rotate = 'право'
+        if start_x > end_x:
+            want_rotate = 'лево'
+        if rotate != want_rotate:
+            print('\\\\')
+            move_rotate()
+            print('навправление',rotate)
+            print('\\\\')
+        move()
+    point_start += 1
+    point_end += 1

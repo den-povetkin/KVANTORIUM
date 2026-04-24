@@ -1,23 +1,22 @@
+import smbus
 import time
+
+I2C_ADDR = 0x24
+bus = smbus.SMBus(1)
+'''
 import Adafruit_PN532 as PN532
 
-# Настройка по SPI
-CS   = 8
-MOSI = 10
-MISO = 9
-SCLK = 11
-
-pn532 = PN532.PN532(cs=CS, sclk=SCLK, mosi=MOSI, miso=MISO)
+pn532 = PN532.PN532(i2c=True, i2c_address=0x24, i2c_busnum=1)
 pn532.begin()
-ic, ver, rev, support = pn532.get_firmware_version()
-print(f'Найден чип PN532: версия {ver}.{rev}')
+'''
 
-pn532.SAM_configuration()
+def read_pn532():
+    try:
+        data = bus.read_i2c_block_data(I2C_ADDR, 0, 16)
+        print("Данные:", [f"0x{b:02X}" for b in data])
+    except:
+        print("Не удалось прочитать данные — проверьте подключение")
 
-print('Ожидание NFC-метки...')
 while True:
-    uid = pn532.read_passive_target()
-    if uid is None:
-        continue
-    print(f'Найдена метка с UID: {"".join(f"{i:02X}" for i in uid)}')
+    read_pn532()
     time.sleep(1)

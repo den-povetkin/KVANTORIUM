@@ -1,6 +1,6 @@
 import time
 import Adafruit_PN532 as PN532
-
+'''
 # Настройка по SPI
 CS   = 8
 MOSI = 10
@@ -9,6 +9,12 @@ SCLK = 11
 
 pn532 = PN532.PN532(cs=CS, sclk=SCLK, mosi=MOSI, miso=MISO)
 pn532.begin()
+'''
+
+pn532 = PN532.PN532(i2c=True, i2c_address=0x24, i2c_busnum=1)
+pn532.begin()
+
+
 ic, ver, rev, support = pn532.get_firmware_version()
 print(f'Найден чип PN532: версия {ver}.{rev}')
 

@@ -132,8 +132,8 @@ def long_text(user_id):
         send_message(user_id, data)
     except FileNotFoundError:
         send_message(user_id, "Информация о нас временно недоступна")
-
-def first_point():
+'''
+def first_point(user_id):
     """Чтение первой NFC метки"""
     global uid, points_to_visit
     
@@ -157,7 +157,7 @@ def first_point():
             else:
                 send_message(user_id, "❌ Не удалось прочитать данные с метки")
                 status = False
-
+'''
 def read_nfc_tag(uid):
     """Чтение данных с NFC метки"""
     try:
