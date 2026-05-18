@@ -222,6 +222,23 @@ def gogo():
                 print(f"Точка добавлена: {new_element}")
             except (IndexError, ValueError):
                 print("Ошибка чтения координат")
+def get_nfc_coord(need_point):
+    """Чтение NFC меток во время движения"""
+    global current_path
+    
+    uid = pn532.read_passive_target(timeout=0.5)
+    if uid is not None:
+        text = read_nfc_tag(uid)
+        if text:
+            try:
+                row = int(text[8])
+                col = int(text[10])
+                need_point = (row, col)
+                print(f"Точка добавлена: {need_point}")
+                return need_point
+            except (IndexError, ValueError):
+                print("Ошибка чтения координат")
+            
 
 def move_robot():
     """Движение робота"""
@@ -248,15 +265,15 @@ def goto_route(user_id):
         return
     
     send_message(user_id, "🚀 Начинаю движение по маршруту..." , create_route_keyboard())
-    
     for item in optimized_path:
         robot.forward()
-        sleep(1)
-        
-        uid = pn532.read_passive_target(timeout=0.5)
-        while uid is None:
-            print('go')
-            uid = pn532.read_passive_target(timeout=0.1)
+        need_point = (0,0)
+        uid = pn532.read_passive_target(timeout=0.01)
+        print(item)
+        while need_point != item:
+            print(need_point)
+            get_nfc_coord(need_point)
+        print(uid)
         
         robot.stop()
         
