@@ -209,7 +209,7 @@ def gogo():
     """Чтение NFC меток во время движения"""
     global current_path
     
-    uid = pn532.read_passive_target(timeout=1.5)
+    uid = pn532.read_passive_target(timeout=0.5)
     if uid is not None:
         text = read_nfc_tag(uid)
         if text:
@@ -252,13 +252,11 @@ def goto_route(user_id):
     for item in optimized_path:
         robot.forward()
         sleep(1)
-        gogo()
         
         uid = pn532.read_passive_target(timeout=0.5)
         while uid is None:
-            robot.forward()
-            sleep(0.5)
-            uid = pn532.read_passive_target(timeout=0.5)
+            print('go')
+            uid = pn532.read_passive_target(timeout=0.1)
         
         robot.stop()
         
@@ -313,7 +311,6 @@ def handle_message(user_id, text):
     
     elif text == "Показать карту":
         send_message(user_id, "🔄 Загрузка карты...")
-        gogo()
         if current_path:
             send_message(user_id, f"📍 Текущие точки: {current_path}")
         else:
